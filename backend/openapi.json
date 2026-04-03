@@ -1,0 +1,3237 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "APEX API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/v1/auth/register": {
+      "post": {
+        "summary": "Register User",
+        "description": "Create a new user account and issue its initial token pair.",
+        "operationId": "register_user_v1_auth_register_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/login": {
+      "post": {
+        "summary": "Login User",
+        "description": "Authenticate a user and issue a fresh access and refresh token pair.",
+        "operationId": "login_user_v1_auth_login_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Login User V1 Auth Login Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "summary": "Refresh Auth",
+        "description": "Rotate a valid refresh token into a new session pair.",
+        "operationId": "refresh_auth_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Refresh Auth V1 Auth Refresh Post"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/logout": {
+      "post": {
+        "summary": "Logout User",
+        "description": "Invalidate an active refresh token and end the current authenticated session.",
+        "operationId": "logout_user_v1_auth_logout_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/strava": {
+      "get": {
+        "summary": "Start Strava Auth",
+        "description": "Return the URL that should be opened to start the Strava connection flow.",
+        "operationId": "start_strava_auth_v1_auth_strava_get",
+        "parameters": [
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "Frontend callback route.",
+              "title": "Redirect Uri"
+            },
+            "description": "Frontend callback route."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Start Strava Auth V1 Auth Strava Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/auth/strava/callback": {
+      "get": {
+        "summary": "Finish Strava Auth",
+        "description": "Complete the Strava callback flow for the authenticated user.",
+        "operationId": "finish_strava_auth_v1_auth_strava_callback_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "title": "Response Finish Strava Auth V1 Auth Strava Callback Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/user/me": {
+      "get": {
+        "summary": "Get Profile",
+        "description": "Return the authenticated user's profile.",
+        "operationId": "get_profile_v1_user_me_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileRead"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "summary": "Update Profile",
+        "description": "Apply partial profile and goal updates for the authenticated user.",
+        "operationId": "update_profile_v1_user_me_patch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserProfileRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/user/avatar": {
+      "post": {
+        "summary": "Upload Avatar",
+        "description": "Accept an avatar upload and store a deterministic local placeholder URL.",
+        "operationId": "upload_avatar_v1_user_avatar_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_avatar_v1_user_avatar_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvatarUploadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/nutrition/today": {
+      "get": {
+        "summary": "Get Nutrition Today",
+        "description": "Return today's nutrition summary and meals.",
+        "operationId": "get_nutrition_today_v1_nutrition_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NutritionTodayResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/nutrition/log": {
+      "get": {
+        "summary": "Get Nutrition Log",
+        "description": "Return meal logs inside the requested date range.",
+        "operationId": "get_nutrition_log_v1_nutrition_log_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NutritionLogResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Nutrition Log",
+        "description": "Persist a confirmed nutrition log entry.",
+        "operationId": "create_nutrition_log_v1_nutrition_log_post",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealLogCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealLogRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/log/{log_id}": {
+      "patch": {
+        "summary": "Patch Nutrition Log",
+        "description": "Update an existing nutrition log entry.",
+        "operationId": "patch_nutrition_log_v1_nutrition_log__log_id__patch",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "log_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Log Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MealLogCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealLogRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove Nutrition Log",
+        "description": "Delete a nutrition log entry owned by the current user.",
+        "operationId": "remove_nutrition_log_v1_nutrition_log__log_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "log_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Log Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/log/voice": {
+      "post": {
+        "summary": "Parse Voice Log",
+        "description": "Parse an uploaded voice note into a reviewable nutrition suggestion.",
+        "operationId": "parse_voice_log_v1_nutrition_log_voice_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_parse_voice_log_v1_nutrition_log_voice_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealParseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/log/photo": {
+      "post": {
+        "summary": "Parse Photo Log",
+        "description": "Parse an uploaded meal photo into a reviewable nutrition suggestion.",
+        "operationId": "parse_photo_log_v1_nutrition_log_photo_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_parse_photo_log_v1_nutrition_log_photo_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MealParseResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/foods/search": {
+      "get": {
+        "summary": "Search Food Database",
+        "description": "Search the food database used by manual logging flows.",
+        "operationId": "search_food_database_v1_nutrition_foods_search_get",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Q"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FoodSearchResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/nutrition/weekly": {
+      "get": {
+        "summary": "Get Nutrition Weekly",
+        "description": "Return a seven-day nutrition rollup ending on the requested date.",
+        "operationId": "get_nutrition_weekly_v1_nutrition_weekly_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "end_date",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NutritionWeeklyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/training/today": {
+      "get": {
+        "summary": "Get Training Today",
+        "description": "Return today's training summary and generated plan.",
+        "operationId": "get_training_today_v1_training_today_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingTodayResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/training/activities": {
+      "get": {
+        "summary": "Get Training Activities",
+        "description": "Return filtered training activity history.",
+        "operationId": "get_training_activities_v1_training_activities_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          },
+          {
+            "name": "sport",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Sport"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/training/activities/{activity_id}": {
+      "get": {
+        "summary": "Get Training Activity",
+        "description": "Return the details for a single training activity.",
+        "operationId": "get_training_activity_v1_training_activities__activity_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "activity_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Activity Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivityRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/training/strava/sync": {
+      "post": {
+        "summary": "Sync Strava",
+        "description": "Synchronize recent Strava activities for the authenticated user.",
+        "operationId": "sync_strava_v1_training_strava_sync_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "additionalProperties": {
+                      "type": "integer"
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StravaSyncResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/training/load": {
+      "get": {
+        "summary": "Get Training Load",
+        "description": "Return the CTL, ATL, and TSB load curve for the requested window.",
+        "operationId": "get_training_load_v1_training_load_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 90,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingLoadResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/training/weekly": {
+      "get": {
+        "summary": "Get Training Weekly",
+        "description": "Return weekly training summaries for charts and review views.",
+        "operationId": "get_training_weekly_v1_training_weekly_get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "weeks",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "default": 8,
+              "title": "Weeks"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrainingWeeklyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/coach/message": {
+      "post": {
+        "summary": "Send Coach Message",
+        "description": "Send a text message to the coach and persist the generated reply.",
+        "operationId": "send_coach_message_v1_coach_message_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachReplyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/coach/voice": {
+      "post": {
+        "summary": "Send Coach Voice",
+        "description": "Handle a push-to-talk coach message and persist the generated reply.",
+        "operationId": "send_coach_voice_v1_coach_voice_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_send_coach_voice_v1_coach_voice_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoachReplyResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/coach/conversations": {
+      "get": {
+        "summary": "Get Coach Conversations",
+        "description": "Return saved coach conversation previews for the authenticated user.",
+        "operationId": "get_coach_conversations_v1_coach_conversations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationListResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/coach/conversations/{conversation_id}": {
+      "get": {
+        "summary": "Get Coach Conversation",
+        "description": "Return the full history for a saved coach conversation.",
+        "operationId": "get_coach_conversation_v1_coach_conversations__conversation_id__get",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConversationDetailResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Coach Conversation",
+        "description": "Delete a saved coach conversation.",
+        "operationId": "delete_coach_conversation_v1_coach_conversations__conversation_id__delete",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/settings/integrations": {
+      "get": {
+        "summary": "Get Integrations",
+        "description": "Return the current integration status for the authenticated user.",
+        "operationId": "get_integrations_v1_settings_integrations_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IntegrationsResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/settings/integrations/strava": {
+      "delete": {
+        "summary": "Disconnect Strava",
+        "description": "Disconnect the current user's Strava integration.",
+        "operationId": "disconnect_strava_v1_settings_integrations_strava_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/v1/settings/integrations/google": {
+      "delete": {
+        "summary": "Disconnect Google",
+        "description": "Disconnect the current user's Google Calendar integration.",
+        "operationId": "disconnect_google_v1_settings_integrations_google_delete",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/healthz": {
+      "get": {
+        "summary": "Healthcheck",
+        "description": "Return a lightweight health response for local orchestration.",
+        "operationId": "healthcheck_healthz_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Healthcheck Healthz Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityListResponse": {
+        "properties": {
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityRead"
+            },
+            "type": "array",
+            "title": "Activities"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activities",
+          "total"
+        ],
+        "title": "ActivityListResponse",
+        "description": "Return paginated activity history."
+      },
+      "ActivityRead": {
+        "properties": {
+          "activity_id": {
+            "type": "string",
+            "title": "Activity Id"
+          },
+          "strava_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Strava Id"
+          },
+          "sport": {
+            "type": "string",
+            "title": "Sport"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "start_time": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Start Time"
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "title": "Duration Seconds"
+          },
+          "distance_m": {
+            "type": "number",
+            "title": "Distance M"
+          },
+          "elevation_m": {
+            "type": "number",
+            "title": "Elevation M"
+          },
+          "avg_power_w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Power W"
+          },
+          "normalized_power_w": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Normalized Power W"
+          },
+          "avg_hr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Hr"
+          },
+          "max_hr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Hr"
+          },
+          "tss": {
+            "type": "number",
+            "title": "Tss"
+          },
+          "intensity_factor": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intensity Factor"
+          },
+          "calories": {
+            "type": "number",
+            "title": "Calories"
+          },
+          "map_polyline": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Map Polyline"
+          },
+          "photo_urls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Photo Urls"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity_id",
+          "strava_id",
+          "sport",
+          "name",
+          "start_time",
+          "duration_seconds",
+          "distance_m",
+          "elevation_m",
+          "avg_power_w",
+          "normalized_power_w",
+          "avg_hr",
+          "max_hr",
+          "tss",
+          "intensity_factor",
+          "calories",
+          "created_at"
+        ],
+        "title": "ActivityRead",
+        "description": "Expose normalized activity data returned from Strava sync and history views."
+      },
+      "AvatarUploadResponse": {
+        "properties": {
+          "avatar_url": {
+            "type": "string",
+            "title": "Avatar Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "avatar_url"
+        ],
+        "title": "AvatarUploadResponse",
+        "description": "Return the avatar URL after a successful file upload."
+      },
+      "Body_parse_photo_log_v1_nutrition_log_photo_post": {
+        "properties": {
+          "image": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Image"
+          },
+          "meal_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "image"
+        ],
+        "title": "Body_parse_photo_log_v1_nutrition_log_photo_post"
+      },
+      "Body_parse_voice_log_v1_nutrition_log_voice_post": {
+        "properties": {
+          "audio": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio"
+          },
+          "meal_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meal Type"
+          },
+          "logged_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logged At"
+          },
+          "transcript_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Hint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio"
+        ],
+        "title": "Body_parse_voice_log_v1_nutrition_log_voice_post"
+      },
+      "Body_send_coach_voice_v1_coach_voice_post": {
+        "properties": {
+          "audio": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          },
+          "transcript_hint": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript Hint"
+          }
+        },
+        "type": "object",
+        "required": [
+          "audio"
+        ],
+        "title": "Body_send_coach_voice_v1_coach_voice_post"
+      },
+      "Body_upload_avatar_v1_user_avatar_post": {
+        "properties": {
+          "file": {
+            "type": "string",
+            "contentMediaType": "application/octet-stream",
+            "title": "File"
+          }
+        },
+        "type": "object",
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_avatar_v1_user_avatar_post"
+      },
+      "CoachMessageRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Message"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "CoachMessageRequest",
+        "description": "Validate a text message sent to the APEX coach."
+      },
+      "CoachReplyResponse": {
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id"
+          },
+          "reply": {
+            "type": "string",
+            "title": "Reply"
+          },
+          "context_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Context Used"
+          },
+          "suggested_actions": {
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Suggested Actions"
+          },
+          "transcript": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversation_id",
+          "reply",
+          "context_used"
+        ],
+        "title": "CoachReplyResponse",
+        "description": "Return the assistant reply and action metadata for a coach request."
+      },
+      "ConversationDetailResponse": {
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessageRead"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversation_id",
+          "messages"
+        ],
+        "title": "ConversationDetailResponse",
+        "description": "Return the full message history for a single conversation."
+      },
+      "ConversationListResponse": {
+        "properties": {
+          "conversations": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationPreview"
+            },
+            "type": "array",
+            "title": "Conversations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversations"
+        ],
+        "title": "ConversationListResponse",
+        "description": "Return the athlete's saved conversation previews."
+      },
+      "ConversationMessageRead": {
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "context_used": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Context Used"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "role",
+          "content",
+          "context_used",
+          "timestamp"
+        ],
+        "title": "ConversationMessageRead",
+        "description": "Expose the persisted chat history for a single coach conversation."
+      },
+      "ConversationPreview": {
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id"
+          },
+          "preview": {
+            "type": "string",
+            "title": "Preview"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "conversation_id",
+          "preview",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "ConversationPreview",
+        "description": "Return a conversation summary for the coach inbox view."
+      },
+      "FoodSearchResponse": {
+        "properties": {
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/FoodSearchResult"
+            },
+            "type": "array",
+            "title": "Results"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          }
+        },
+        "type": "object",
+        "required": [
+          "results",
+          "total"
+        ],
+        "title": "FoodSearchResponse",
+        "description": "Return paginated food search matches."
+      },
+      "FoodSearchResult": {
+        "properties": {
+          "food_id": {
+            "type": "string",
+            "title": "Food Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "serving_unit": {
+            "type": "string",
+            "title": "Serving Unit"
+          },
+          "serving_size": {
+            "type": "number",
+            "title": "Serving Size"
+          },
+          "calories": {
+            "type": "number",
+            "title": "Calories"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "number",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          }
+        },
+        "type": "object",
+        "required": [
+          "food_id",
+          "name",
+          "brand",
+          "serving_unit",
+          "serving_size",
+          "calories",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "FoodSearchResult",
+        "description": "Return a searchable food record with serving-level macros."
+      },
+      "GoalPayload": {
+        "properties": {
+          "goal_type": {
+            "type": "string",
+            "enum": [
+              "race",
+              "distance_pr",
+              "body_composition",
+              "consistency",
+              "combined"
+            ],
+            "title": "Goal Type",
+            "default": "race"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "goal_weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal Weight Kg"
+          },
+          "available_training_days": {
+            "type": "integer",
+            "title": "Available Training Days",
+            "default": 5
+          },
+          "secondary_goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secondary Goal"
+          },
+          "constraints_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Constraints Text"
+          },
+          "phase_name": {
+            "type": "string",
+            "title": "Phase Name",
+            "default": "Base"
+          },
+          "weekly_tss_target": {
+            "type": "integer",
+            "title": "Weekly Tss Target",
+            "default": 320
+          },
+          "weekly_hours_target": {
+            "type": "number",
+            "title": "Weekly Hours Target",
+            "default": 6.0
+          }
+        },
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "title": "GoalPayload",
+        "description": "Capture the active goal fields collected during onboarding and updates."
+      },
+      "GoalRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "goal_type": {
+            "type": "string",
+            "title": "Goal Type"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "target_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Date"
+          },
+          "goal_weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Goal Weight Kg"
+          },
+          "available_training_days": {
+            "type": "integer",
+            "title": "Available Training Days"
+          },
+          "secondary_goal": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Secondary Goal"
+          },
+          "constraints_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Constraints Text"
+          },
+          "phase_name": {
+            "type": "string",
+            "title": "Phase Name"
+          },
+          "weekly_tss_target": {
+            "type": "integer",
+            "title": "Weekly Tss Target"
+          },
+          "weekly_hours_target": {
+            "type": "number",
+            "title": "Weekly Hours Target"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "goal_type",
+          "description",
+          "target_date",
+          "goal_weight_kg",
+          "available_training_days",
+          "secondary_goal",
+          "constraints_text",
+          "phase_name",
+          "weekly_tss_target",
+          "weekly_hours_target"
+        ],
+        "title": "GoalRead",
+        "description": "Return the currently active goal embedded inside profile responses."
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "IngredientPayload": {
+        "properties": {
+          "food_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "quantity_g": {
+            "type": "number",
+            "title": "Quantity G"
+          },
+          "calories": {
+            "type": "number",
+            "title": "Calories"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "number",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "quantity_g",
+          "calories",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "IngredientPayload",
+        "description": "Describe a meal ingredient submitted manually or returned by AI parsing."
+      },
+      "IngredientRead": {
+        "properties": {
+          "ingredient_id": {
+            "type": "string",
+            "title": "Ingredient Id"
+          },
+          "food_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Food Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "quantity_g": {
+            "type": "number",
+            "title": "Quantity G"
+          },
+          "calories": {
+            "type": "number",
+            "title": "Calories"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "number",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ingredient_id",
+          "food_id",
+          "name",
+          "quantity_g",
+          "calories",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "IngredientRead",
+        "description": "Expose persisted ingredient data inside meal log responses."
+      },
+      "IntegrationStatus": {
+        "properties": {
+          "connected": {
+            "type": "boolean",
+            "title": "Connected"
+          },
+          "athlete_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Athlete Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "last_sync": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sync"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connected"
+        ],
+        "title": "IntegrationStatus",
+        "description": "Describe the connected state and metadata for a single integration."
+      },
+      "IntegrationsResponse": {
+        "properties": {
+          "strava": {
+            "$ref": "#/components/schemas/IntegrationStatus"
+          },
+          "google_calendar": {
+            "$ref": "#/components/schemas/IntegrationStatus"
+          },
+          "apple_health": {
+            "$ref": "#/components/schemas/IntegrationStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "strava",
+          "google_calendar",
+          "apple_health"
+        ],
+        "title": "IntegrationsResponse",
+        "description": "Return settings-panel integration status for the supported providers."
+      },
+      "LoginRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "description": "Validate email and password login requests."
+      },
+      "MacroTargets": {
+        "properties": {
+          "protein_g": {
+            "type": "integer",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "integer",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "integer",
+            "title": "Fat G"
+          }
+        },
+        "type": "object",
+        "required": [
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "MacroTargets",
+        "description": "Represent daily macro targets exposed in profile and nutrition responses."
+      },
+      "MealLogCreate": {
+        "properties": {
+          "meal_type": {
+            "type": "string",
+            "enum": [
+              "breakfast",
+              "lunch",
+              "dinner",
+              "snack"
+            ],
+            "title": "Meal Type"
+          },
+          "meal_name": {
+            "type": "string",
+            "title": "Meal Name"
+          },
+          "logged_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Logged At"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientPayload"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meal_type",
+          "meal_name",
+          "logged_at",
+          "ingredients"
+        ],
+        "title": "MealLogCreate",
+        "description": "Validate manual meal creation and update payloads."
+      },
+      "MealLogRead": {
+        "properties": {
+          "log_id": {
+            "type": "string",
+            "title": "Log Id"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "meal_type": {
+            "type": "string",
+            "title": "Meal Type"
+          },
+          "meal_name": {
+            "type": "string",
+            "title": "Meal Name"
+          },
+          "logged_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Logged At"
+          },
+          "total_calories": {
+            "type": "number",
+            "title": "Total Calories"
+          },
+          "total_protein_g": {
+            "type": "number",
+            "title": "Total Protein G"
+          },
+          "total_carbs_g": {
+            "type": "number",
+            "title": "Total Carbs G"
+          },
+          "total_fat_g": {
+            "type": "number",
+            "title": "Total Fat G"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientRead"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "log_id",
+          "user_id",
+          "meal_type",
+          "meal_name",
+          "logged_at",
+          "total_calories",
+          "total_protein_g",
+          "total_carbs_g",
+          "total_fat_g",
+          "ingredients",
+          "source",
+          "created_at"
+        ],
+        "title": "MealLogRead",
+        "description": "Expose meal logs with computed totals and ingredients."
+      },
+      "MealParseResponse": {
+        "properties": {
+          "transcript": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transcript"
+          },
+          "parsed_meal": {
+            "$ref": "#/components/schemas/ParsedMeal"
+          },
+          "confidence": {
+            "type": "number",
+            "title": "Confidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "parsed_meal",
+          "confidence"
+        ],
+        "title": "MealParseResponse",
+        "description": "Return the parsed meal suggestion from voice or photo analysis."
+      },
+      "NutritionDayAggregate": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "calories": {
+            "type": "number",
+            "title": "Calories"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "number",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "calories",
+          "protein_g",
+          "carbs_g",
+          "fat_g"
+        ],
+        "title": "NutritionDayAggregate",
+        "description": "Represent aggregated macro values for a single calendar day."
+      },
+      "NutritionLogResponse": {
+        "properties": {
+          "logs": {
+            "items": {
+              "$ref": "#/components/schemas/MealLogRead"
+            },
+            "type": "array",
+            "title": "Logs"
+          }
+        },
+        "type": "object",
+        "required": [
+          "logs"
+        ],
+        "title": "NutritionLogResponse",
+        "description": "Return meal logs filtered across a date range."
+      },
+      "NutritionSummary": {
+        "properties": {
+          "calories_consumed": {
+            "type": "number",
+            "title": "Calories Consumed"
+          },
+          "calories_target": {
+            "type": "integer",
+            "title": "Calories Target"
+          },
+          "protein_g": {
+            "type": "number",
+            "title": "Protein G"
+          },
+          "carbs_g": {
+            "type": "number",
+            "title": "Carbs G"
+          },
+          "fat_g": {
+            "type": "number",
+            "title": "Fat G"
+          },
+          "target_day_type": {
+            "type": "string",
+            "title": "Target Day Type"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "calories_consumed",
+          "calories_target",
+          "protein_g",
+          "carbs_g",
+          "fat_g",
+          "target_day_type"
+        ],
+        "title": "NutritionSummary",
+        "description": "Summarize consumed and target macros for a specific day."
+      },
+      "NutritionTodayResponse": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/NutritionSummary"
+          },
+          "meals": {
+            "items": {
+              "$ref": "#/components/schemas/MealLogRead"
+            },
+            "type": "array",
+            "title": "Meals"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "summary",
+          "meals"
+        ],
+        "title": "NutritionTodayResponse",
+        "description": "Return today's nutrition snapshot and all meals for the active athlete."
+      },
+      "NutritionWeeklyResponse": {
+        "properties": {
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/NutritionDayAggregate"
+            },
+            "type": "array",
+            "title": "Days"
+          }
+        },
+        "type": "object",
+        "required": [
+          "days"
+        ],
+        "title": "NutritionWeeklyResponse",
+        "description": "Return a seven-day nutrition rollup used by charts and weekly review UI."
+      },
+      "ParsedMeal": {
+        "properties": {
+          "meal_name": {
+            "type": "string",
+            "title": "Meal Name"
+          },
+          "meal_type": {
+            "type": "string",
+            "enum": [
+              "breakfast",
+              "lunch",
+              "dinner",
+              "snack"
+            ],
+            "title": "Meal Type"
+          },
+          "ingredients": {
+            "items": {
+              "$ref": "#/components/schemas/IngredientPayload"
+            },
+            "type": "array",
+            "title": "Ingredients"
+          }
+        },
+        "type": "object",
+        "required": [
+          "meal_name",
+          "meal_type",
+          "ingredients"
+        ],
+        "title": "ParsedMeal",
+        "description": "Represent a machine-generated meal suggestion awaiting user confirmation."
+      },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "description": "Validate refresh-token rotation requests."
+      },
+      "RegisterRequest": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "title": "Password"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password",
+          "name"
+        ],
+        "title": "RegisterRequest",
+        "description": "Validate account creation requests."
+      },
+      "RegisterResponse": {
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "title": "Access Token"
+          },
+          "refresh_token": {
+            "type": "string",
+            "title": "Refresh Token"
+          },
+          "expires_in": {
+            "type": "integer",
+            "title": "Expires In"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "access_token",
+          "refresh_token",
+          "expires_in",
+          "user_id",
+          "email",
+          "name"
+        ],
+        "title": "RegisterResponse",
+        "description": "Return the created user and authentication tokens after registration."
+      },
+      "StravaSyncResponse": {
+        "properties": {
+          "synced_count": {
+            "type": "integer",
+            "title": "Synced Count"
+          },
+          "activities": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityRead"
+            },
+            "type": "array",
+            "title": "Activities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "synced_count",
+          "activities"
+        ],
+        "title": "StravaSyncResponse",
+        "description": "Summarize the activities imported during a Strava synchronization job."
+      },
+      "TrainingLoadPoint": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "ctl": {
+            "type": "number",
+            "title": "Ctl"
+          },
+          "atl": {
+            "type": "number",
+            "title": "Atl"
+          },
+          "tsb": {
+            "type": "number",
+            "title": "Tsb"
+          },
+          "daily_tss": {
+            "type": "number",
+            "title": "Daily Tss"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "ctl",
+          "atl",
+          "tsb",
+          "daily_tss"
+        ],
+        "title": "TrainingLoadPoint",
+        "description": "Represent one day in the CTL/ATL/TSB time series."
+      },
+      "TrainingLoadResponse": {
+        "properties": {
+          "series": {
+            "items": {
+              "$ref": "#/components/schemas/TrainingLoadPoint"
+            },
+            "type": "array",
+            "title": "Series"
+          }
+        },
+        "type": "object",
+        "required": [
+          "series"
+        ],
+        "title": "TrainingLoadResponse",
+        "description": "Return the load curve used by the dashboard and training screens."
+      },
+      "TrainingMetrics": {
+        "properties": {
+          "ctl": {
+            "type": "number",
+            "title": "Ctl"
+          },
+          "atl": {
+            "type": "number",
+            "title": "Atl"
+          },
+          "tsb": {
+            "type": "number",
+            "title": "Tsb"
+          },
+          "daily_tss": {
+            "type": "number",
+            "title": "Daily Tss"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ctl",
+          "atl",
+          "tsb",
+          "daily_tss"
+        ],
+        "title": "TrainingMetrics",
+        "description": "Return the current CTL, ATL, TSB, and daily stress values."
+      },
+      "TrainingTodayResponse": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date",
+            "title": "Date"
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/TrainingMetrics"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "optimal",
+              "fresh",
+              "fatigued",
+              "overreaching"
+            ],
+            "title": "Status"
+          },
+          "planned_activities": {
+            "items": {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            "type": "array",
+            "title": "Planned Activities"
+          },
+          "completed_activities": {
+            "items": {
+              "$ref": "#/components/schemas/ActivityRead"
+            },
+            "type": "array",
+            "title": "Completed Activities"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "metrics",
+          "status",
+          "planned_activities",
+          "completed_activities"
+        ],
+        "title": "TrainingTodayResponse",
+        "description": "Return the generated daily training brief plus completed sessions."
+      },
+      "TrainingWeeklyResponse": {
+        "properties": {
+          "weeks": {
+            "items": {
+              "$ref": "#/components/schemas/WeeklyTrainingSummary"
+            },
+            "type": "array",
+            "title": "Weeks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "weeks"
+        ],
+        "title": "TrainingWeeklyResponse",
+        "description": "Return the requested number of weekly training summaries."
+      },
+      "UserProfileRead": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "avatar_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avatar Url"
+          },
+          "sports": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Sports"
+          },
+          "ftp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ftp"
+          },
+          "lthr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lthr"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "daily_calorie_target": {
+            "type": "integer",
+            "title": "Daily Calorie Target"
+          },
+          "macro_targets": {
+            "$ref": "#/components/schemas/MacroTargets"
+          },
+          "timezone": {
+            "type": "string",
+            "title": "Timezone"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "active_goal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GoalRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "name",
+          "email",
+          "avatar_url",
+          "sports",
+          "ftp",
+          "lthr",
+          "weight_kg",
+          "height_cm",
+          "daily_calorie_target",
+          "macro_targets",
+          "timezone",
+          "created_at"
+        ],
+        "title": "UserProfileRead",
+        "description": "Return the athlete profile used by onboarding, settings, and the coach."
+      },
+      "UserProfileUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "ftp": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ftp"
+          },
+          "lthr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lthr"
+          },
+          "weight_kg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weight Kg"
+          },
+          "height_cm": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height Cm"
+          },
+          "daily_calorie_target": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Daily Calorie Target"
+          },
+          "sports": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sports"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          },
+          "macro_targets": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MacroTargets"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active_goal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GoalPayload"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "UserProfileUpdate",
+        "description": "Validate partial athlete profile updates from onboarding and settings."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WeeklyTrainingSummary": {
+        "properties": {
+          "week_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Week Start"
+          },
+          "total_tss": {
+            "type": "number",
+            "title": "Total Tss"
+          },
+          "total_hours": {
+            "type": "number",
+            "title": "Total Hours"
+          },
+          "total_distance_km": {
+            "type": "number",
+            "title": "Total Distance Km"
+          },
+          "activities_count": {
+            "type": "integer",
+            "title": "Activities Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "week_start",
+          "total_tss",
+          "total_hours",
+          "total_distance_km",
+          "activities_count"
+        ],
+        "title": "WeeklyTrainingSummary",
+        "description": "Summarize one training week for overview charts."
+      }
+    },
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    }
+  }
+}
