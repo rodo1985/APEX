@@ -69,6 +69,8 @@ npm run dev
 
 The Vite app will be available at `http://localhost:5173`.
 
+If you open the frontend on `http://127.0.0.1:5173`, the app now mirrors that hostname for the default API fallback so local auth and onboarding still work without extra config.
+
 ### Common development commands
 
 Backend:
@@ -102,6 +104,7 @@ Important values:
   Production intent remains Postgres as the system of record.
 - `APEX_ALLOWED_ORIGINS`
   Comma-separated CORS origins for the frontend.
+  The local defaults include both `http://localhost:5173` and `http://127.0.0.1:5173`.
 - `APEX_JWT_SECRET`
   Signing secret for access and refresh tokens.
 - `APEX_STRAVA_CLIENT_ID`
@@ -121,6 +124,7 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
 
 - `VITE_API_URL`
   Points the React app at the versioned API base.
+  When omitted in local development, the frontend falls back to the current browser hostname on port `8000`.
 
 ## Project Structure
 

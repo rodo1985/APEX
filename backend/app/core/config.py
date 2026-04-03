@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     api_prefix: str = "/v1"
     database_url: str = "sqlite:///./apex.db"
     frontend_url: str = "http://localhost:5173"
-    allowed_origins: str = "http://localhost:5173"
+    allowed_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     jwt_secret: str = Field(
         default="apex-dev-secret-change-me-32chars",
         description="Signing secret used for access and refresh JWTs.",

@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
 import { toDateInputValue } from "../lib/format";
-import type { GoalPayload, IntegrationsResponse, Sport } from "../lib/types";
+import type { GoalPayload, IntegrationsResponse, Sport, UserProfile } from "../lib/types";
 
 const DEFAULT_GOAL: GoalPayload = {
   goal_type: "race",
@@ -19,17 +19,16 @@ const DEFAULT_GOAL: GoalPayload = {
   weekly_hours_target: 6,
 };
 
-export function OnboardingPage() {
-  const navigate = useNavigate();
-  const { api, saveOnboarding, refreshProfile, user } = useSession();
-  const [integrations, setIntegrations] = useState<IntegrationsResponse | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [profile, setProfile] = useState({
+export const DEFAULT_ONBOARDING_SPORTS: Sport[] = ["cycling", "running"];
+
+export function createInitialOnboardingProfile(user: UserProfile | null) {
+  const sports = user?.sports.length ? user.sports : DEFAULT_ONBOARDING_SPORTS;
+
+  return {
     name: user?.name ?? "",
     timezone: user?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone,
-    sports: user?.sports ?? (["cycling", "running"] as Sport[]),
+    // New athletes start with the core sport pair selected so the first save clears onboarding.
+    sports: [...sports],
     ftp: user?.ftp?.toString() ?? "",
     lthr: user?.lthr?.toString() ?? "",
     weight_kg: user?.weight_kg?.toString() ?? "",
@@ -38,7 +37,17 @@ export function OnboardingPage() {
     protein_g: user?.macro_targets.protein_g?.toString() ?? "140",
     carbs_g: user?.macro_targets.carbs_g?.toString() ?? "260",
     fat_g: user?.macro_targets.fat_g?.toString() ?? "65",
-  });
+  };
+}
+
+export function OnboardingPage() {
+  const navigate = useNavigate();
+  const { api, saveOnboarding, refreshProfile, user } = useSession();
+  const [integrations, setIntegrations] = useState<IntegrationsResponse | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [profile, setProfile] = useState(() => createInitialOnboardingProfile(user));
   const [goal, setGoal] = useState<GoalPayload>({
     ...DEFAULT_GOAL,
     ...(user?.active_goal ?? {}),
@@ -75,6 +84,10 @@ export function OnboardingPage() {
     setSubmitting(true);
 
     try {
+      if (profile.sports.length === 0) {
+        throw new Error("Select at least one sport to finish onboarding.");
+      }
+
       await saveOnboarding({
         name: profile.name,
         timezone: profile.timezone,
