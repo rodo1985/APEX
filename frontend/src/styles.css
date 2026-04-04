@@ -707,3 +707,921 @@ img {
     display: none;
   }
 }
+
+:root {
+  --workspace-bg: #0f1012;
+  --workspace-card: #18191f;
+  --workspace-card-2: #1e1f27;
+  --workspace-border: rgba(255, 255, 255, 0.06);
+  --workspace-muted: #8a8f9e;
+  --workspace-subtle: #3d4050;
+  --workspace-text: #ffffff;
+  --workspace-teal: #2dd4bf;
+  --workspace-teal-dim: rgba(45, 212, 191, 0.1);
+  --workspace-teal-border: rgba(45, 212, 191, 0.18);
+  --workspace-orange: #f97316;
+  --workspace-blue: #60a5fa;
+}
+
+.workspace-shell {
+  min-height: 100vh;
+  background: var(--workspace-bg);
+  color: var(--workspace-text);
+  display: flex;
+}
+
+.workspace-sidebar {
+  width: 244px;
+  flex-shrink: 0;
+  background: #13141a;
+  border-right: 1px solid var(--workspace-border);
+  display: none;
+  flex-direction: column;
+}
+
+.workspace-brand {
+  display: flex;
+  padding: 1.75rem 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--workspace-border);
+}
+
+.workspace-nav {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 0.75rem;
+}
+
+.workspace-nav-link,
+.workspace-user-card,
+.workspace-logout,
+.workspace-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-radius: 0.9rem;
+  color: var(--workspace-muted);
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.workspace-nav-link {
+  padding: 0.8rem 0.95rem;
+}
+
+.workspace-nav-link.active,
+.workspace-mobile-link.active {
+  background: var(--workspace-teal-dim);
+  color: var(--workspace-teal);
+}
+
+.workspace-user-card {
+  margin: auto 0.75rem 0.75rem;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--workspace-border);
+}
+
+.workspace-user-avatar {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: var(--workspace-card-2);
+  border: 2px solid var(--workspace-teal);
+  color: var(--workspace-teal);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.workspace-user-copy {
+  display: grid;
+  flex: 1;
+}
+
+.workspace-user-copy strong {
+  font-size: 0.82rem;
+  color: var(--workspace-text);
+}
+
+.workspace-user-copy span,
+.workspace-topbar-date,
+.workspace-topbar-subtitle,
+.workspace-section-heading span,
+.workspace-page-header span,
+.workspace-stat-card span,
+.workspace-support-copy,
+.training-support-copy,
+.food-search-row p,
+.saved-meal-card p,
+.settings-integration-row p,
+.settings-profile-note p,
+.settings-field span,
+.metric-chip span,
+.today-card-copy span,
+.today-calorie-mini-grid span,
+.today-chart-column span,
+.today-macro-row span,
+.coach-message-author,
+.coach-dock-context,
+.coach-dock-preview,
+.coach-empty {
+  color: var(--workspace-muted);
+}
+
+.workspace-logout {
+  margin: 0 0.75rem 1.5rem;
+  padding: 0.75rem 0.95rem;
+  border: 1px solid transparent;
+}
+
+.workspace-nav-link:hover,
+.workspace-user-card:hover,
+.workspace-logout:hover,
+.workspace-icon-button:hover,
+.workspace-primary-button:hover,
+.workspace-secondary-button:hover,
+.workspace-text-button:hover,
+.log-action-card:hover,
+.meal-category-card:hover,
+.saved-meal-card:hover,
+.food-search-row:hover {
+  transform: translateY(-1px);
+}
+
+.workspace-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.35rem 1.4rem 1rem;
+  border-bottom: 1px solid var(--workspace-border);
+}
+
+.workspace-topbar-title {
+  font-size: clamp(1.15rem, 2vw, 1.55rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.workspace-topbar-actions,
+.settings-inline-actions,
+.training-pill-row,
+.coach-dock-lockup,
+.coach-dock-rail-title,
+.coach-dock-preview-row,
+.coach-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.workspace-live-pill,
+.workspace-pill,
+.workspace-linkish,
+.coach-dock-live,
+.training-hero-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--workspace-border);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--workspace-muted);
+}
+
+.workspace-live-dot,
+.coach-dock-live-dot {
+  width: 0.38rem;
+  height: 0.38rem;
+  border-radius: 999px;
+  background: var(--workspace-teal);
+  box-shadow: 0 0 10px var(--workspace-teal);
+}
+
+.workspace-icon-button,
+.coach-composer-button {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--workspace-border);
+  background: var(--workspace-card);
+  color: var(--workspace-muted);
+  display: grid;
+  place-items: center;
+}
+
+.workspace-mobile-only {
+  display: inline-grid;
+}
+
+.workspace-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.25rem 1.25rem 5.8rem;
+}
+
+.workspace-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.workspace-page-header.compact {
+  align-items: center;
+}
+
+.workspace-page-header h2,
+.workspace-section-heading h3,
+.meal-category-content h3,
+.training-hero h4,
+.settings-page-heading h3 {
+  margin: 0;
+  font-family: "Outfit", sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+}
+
+.workspace-page-header p,
+.workspace-support-copy,
+.settings-page-heading span,
+.today-card-copy span,
+.today-card-copy small {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.workspace-card,
+.workspace-stat-card,
+.training-summary-card,
+.meal-composer-card,
+.saved-meal-card,
+.settings-panel,
+.metric-chip,
+.log-action-card,
+.food-search-row,
+.ingredient-editor-card {
+  border: 1px solid var(--workspace-border);
+  background: var(--workspace-card);
+  border-radius: 1.35rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.26);
+}
+
+.workspace-card,
+.training-summary-card,
+.settings-panel {
+  padding: 1.25rem;
+}
+
+.workspace-stat-card {
+  padding: 1rem 1.1rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.workspace-stat-card strong,
+.training-summary-grid strong,
+.today-planned-metrics strong,
+.today-calorie-mini-grid strong,
+.metric-chip strong,
+.settings-integration-row strong,
+.food-search-row strong,
+.saved-meal-card strong {
+  font-size: 1.05rem;
+  color: var(--workspace-text);
+}
+
+.workspace-primary-button,
+.workspace-secondary-button,
+.workspace-text-button {
+  border-radius: 1rem;
+  border: 1px solid transparent;
+  padding: 0.82rem 1rem;
+  font-weight: 700;
+}
+
+.workspace-primary-button {
+  background: var(--workspace-teal);
+  color: #071a18;
+}
+
+.workspace-secondary-button {
+  background: var(--workspace-card-2);
+  border-color: var(--workspace-border);
+  color: var(--workspace-text);
+}
+
+.workspace-text-button {
+  background: transparent;
+  color: var(--workspace-muted);
+  padding-inline: 0.3rem;
+}
+
+.workspace-empty {
+  border-radius: 1.2rem;
+  border: 1px dashed var(--workspace-border);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 1rem 1.1rem;
+  color: var(--workspace-muted);
+}
+
+.workspace-section-heading,
+.food-search-row,
+.settings-page-heading {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.today-chip-grid,
+.log-action-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.metric-chip {
+  padding: 1rem;
+  display: grid;
+  gap: 0.45rem;
+  color: var(--workspace-muted);
+}
+
+.metric-chip-accent {
+  background: var(--workspace-teal-dim);
+  border-color: var(--workspace-teal-border);
+  color: var(--workspace-teal);
+}
+
+.today-grid,
+.composer-grid,
+.settings-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.today-column,
+.composer-column,
+.settings-tab-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.today-calories-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  border: 1px solid var(--workspace-border);
+  background:
+    radial-gradient(circle at top right, rgba(45, 212, 191, 0.1), transparent 34%),
+    var(--workspace-card);
+  padding: 1.3rem;
+}
+
+.today-card-copy h2 {
+  margin: 0.2rem 0 1rem;
+  font-size: clamp(2.8rem, 8vw, 4rem);
+  line-height: 0.95;
+  letter-spacing: -0.08em;
+}
+
+.today-card-copy small {
+  margin-left: 0.35rem;
+  font-size: 0.9rem;
+  letter-spacing: 0;
+}
+
+.today-calorie-mini-grid,
+.today-planned-metrics,
+.training-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.training-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.today-calorie-mini-grid > div,
+.today-planned-metrics > div,
+.training-summary-grid > div {
+  background: var(--workspace-card-2);
+  border-radius: 0.9rem;
+  padding: 0.85rem 0.8rem;
+  display: grid;
+  gap: 0.2rem;
+}
+
+.today-calorie-mini-grid .accent strong {
+  color: var(--workspace-teal);
+}
+
+.today-macro-stack {
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.today-macro-row {
+  display: grid;
+  grid-template-columns: 4.2rem 1fr 2.7rem;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.today-macro-row strong {
+  text-align: right;
+  font-size: 0.84rem;
+}
+
+.today-macro-bar,
+.training-progress-bar {
+  height: 0.3rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.today-macro-bar > div,
+.training-progress-bar > div {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--workspace-teal), rgba(45, 212, 191, 0.4));
+}
+
+.workspace-insight-card {
+  border-radius: 1.35rem;
+  border: 1px solid var(--workspace-teal-border);
+  background: var(--workspace-teal-dim);
+  padding: 1rem;
+  display: flex;
+  gap: 0.8rem;
+}
+
+.workspace-insight-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 0.85rem;
+  background: rgba(45, 212, 191, 0.16);
+  display: grid;
+  place-items: center;
+  color: var(--workspace-teal);
+  flex-shrink: 0;
+}
+
+.workspace-insight-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--workspace-teal);
+  margin-bottom: 0.35rem;
+}
+
+.workspace-insight-card p {
+  margin: 0;
+  line-height: 1.55;
+  color: var(--workspace-text);
+}
+
+.today-chart {
+  height: 9rem;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.55rem;
+  align-items: end;
+}
+
+.today-chart-column {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.today-chart-bar {
+  width: 100%;
+  min-height: 1rem;
+  border-radius: 999px 999px 0.4rem 0.4rem;
+  background: linear-gradient(180deg, var(--workspace-teal), rgba(45, 212, 191, 0.18));
+}
+
+.training-load-bar {
+  background: linear-gradient(180deg, var(--workspace-blue), rgba(96, 165, 250, 0.18));
+}
+
+.training-hero,
+.meal-category-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 12rem;
+  border-radius: 1.35rem;
+  background-position: center;
+  background-size: cover;
+  text-align: left;
+}
+
+.training-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.78));
+}
+
+.training-hero-content,
+.meal-category-content {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 1rem 1.05rem;
+  display: grid;
+  gap: 0.6rem;
+}
+
+.training-hero h4,
+.meal-category-content h3 {
+  font-size: 1.12rem;
+  color: #fff;
+}
+
+.training-pill-row {
+  flex-wrap: wrap;
+}
+
+.training-pill {
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.training-pill.accent {
+  background: rgba(45, 212, 191, 0.24);
+  color: var(--workspace-teal);
+}
+
+.meal-category-grid,
+.saved-meal-grid,
+.training-card-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.meal-category-time {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.log-action-card {
+  padding: 1rem;
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+  color: var(--workspace-muted);
+}
+
+.log-action-card strong {
+  color: var(--workspace-text);
+}
+
+.log-action-card.primary {
+  background: var(--workspace-teal);
+  color: #071a18;
+}
+
+.log-action-card.primary strong,
+.log-action-card.primary span {
+  color: #071a18;
+}
+
+.meal-composer-card textarea,
+.settings-field textarea,
+.settings-field input,
+.settings-field select {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--workspace-border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--workspace-text);
+  padding: 0.85rem 0.95rem;
+}
+
+.settings-shell {
+  align-items: start;
+}
+
+.settings-rail {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.settings-rail-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem;
+  border-radius: 0.95rem;
+  background: var(--workspace-card);
+  border: 1px solid var(--workspace-border);
+  color: var(--workspace-muted);
+  text-align: left;
+}
+
+.settings-rail-link.active {
+  background: var(--workspace-teal-dim);
+  border-color: var(--workspace-teal-border);
+  color: var(--workspace-teal);
+}
+
+.settings-page-heading {
+  margin-bottom: 1rem;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.settings-field {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.settings-field.compact {
+  margin-top: 0.7rem;
+}
+
+.settings-field-wide {
+  grid-column: 1 / -1;
+}
+
+.settings-profile-note {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid var(--workspace-border);
+  background: var(--workspace-card-2);
+  display: flex;
+  align-items: start;
+  gap: 0.7rem;
+}
+
+.settings-profile-note p,
+.settings-integration-row p,
+.food-search-row p,
+.saved-meal-card p {
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
+}
+
+.settings-integration-row,
+.food-search-row,
+.ingredient-editor-card,
+.saved-meal-card {
+  padding: 1rem;
+}
+
+.coach-dock {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--workspace-bg);
+}
+
+.coach-dock-page {
+  min-height: 64vh;
+  border: 1px solid var(--workspace-border);
+  border-radius: 1.5rem;
+  background: linear-gradient(180deg, rgba(24, 25, 31, 0.92), rgba(15, 16, 18, 0.96));
+  overflow: hidden;
+}
+
+.coach-dock-rail {
+  height: 100%;
+}
+
+.workspace-rail {
+  display: none;
+}
+
+.coach-dock-header {
+  padding: 1.15rem 1.1rem 0.9rem;
+  border-bottom: 1px solid var(--workspace-border);
+  display: grid;
+  gap: 0.65rem;
+}
+
+.coach-dock-rail-title strong,
+.coach-dock-lockup strong {
+  font-size: 0.95rem;
+}
+
+.coach-dock-preview-row {
+  justify-content: space-between;
+}
+
+.coach-dock-preview {
+  font-size: 0.84rem;
+  line-height: 1.4;
+}
+
+.coach-dock-new {
+  color: var(--workspace-teal);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.coach-dock-messages {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1rem 0.4rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.coach-message {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.coach-message.user {
+  justify-items: end;
+}
+
+.coach-message-author {
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.coach-message-bubble {
+  max-width: min(100%, 34rem);
+  padding: 0.8rem 0.95rem;
+  border-radius: 1.15rem;
+  line-height: 1.6;
+  border: 1px solid var(--workspace-border);
+  background: var(--workspace-card);
+}
+
+.coach-message.user .coach-message-bubble {
+  background: var(--workspace-teal);
+  color: #071a18;
+  border-color: transparent;
+}
+
+.coach-dock-composer {
+  padding: 0.9rem 1rem 1rem;
+  border-top: 1px solid var(--workspace-border);
+}
+
+.coach-composer-shell {
+  display: flex;
+  gap: 0.55rem;
+  align-items: end;
+  padding: 0.65rem;
+  border-radius: 1.35rem;
+  border: 1px solid var(--workspace-border);
+  background: var(--workspace-card);
+}
+
+.coach-composer-shell textarea {
+  flex: 1;
+  min-height: 2.2rem;
+  max-height: 8rem;
+  resize: vertical;
+  border: none;
+  background: transparent;
+  color: var(--workspace-text);
+  padding: 0.3rem 0.35rem;
+  outline: none;
+}
+
+.coach-composer-send {
+  background: var(--workspace-teal);
+  color: #071a18;
+  border-color: transparent;
+}
+
+.coach-composer-send:disabled {
+  background: var(--workspace-card-2);
+  color: var(--workspace-subtle);
+}
+
+.workspace-mobile-nav {
+  position: sticky;
+  bottom: 0;
+  border-top: 1px solid var(--workspace-border);
+  background: rgba(15, 16, 18, 0.98);
+  backdrop-filter: blur(20px);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.8rem 0.75rem 1rem;
+}
+
+.workspace-mobile-link {
+  flex-direction: column;
+  justify-content: center;
+  padding: 0.55rem 0.3rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+@media (min-width: 900px) {
+  .today-grid,
+  .composer-grid,
+  .settings-shell {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .meal-category-grid,
+  .saved-meal-grid,
+  .training-card-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .workspace-sidebar {
+    display: flex;
+  }
+
+  .workspace-mobile-nav,
+  .workspace-mobile-only {
+    display: none;
+  }
+
+  .workspace-main {
+    min-width: 0;
+  }
+
+  .workspace-page {
+    padding: 1.4rem 1.8rem 1.8rem;
+  }
+
+  .workspace-rail {
+    display: block;
+    width: 380px;
+    flex-shrink: 0;
+    border-left: 1px solid var(--workspace-border);
+  }
+
+  .workspace-topbar {
+    padding: 1.2rem 1.8rem 1rem;
+  }
+}
+
+@media (max-width: 899px) {
+  .today-chip-grid,
+  .log-action-grid,
+  .settings-form-grid,
+  .today-calorie-mini-grid,
+  .today-planned-metrics,
+  .training-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-page-header,
+  .workspace-section-heading,
+  .settings-page-heading,
+  .food-search-row {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .meal-category-grid,
+  .saved-meal-grid,
+  .training-card-stack {
+    grid-template-columns: 1fr;
+  }
+}

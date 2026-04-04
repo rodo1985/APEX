@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SettingsPage } from "./SettingsPage";
@@ -44,6 +45,7 @@ describe("SettingsPage", () => {
   });
 
   it("renders integration status with deferred providers called out clearly", async () => {
+    const user = userEvent.setup();
     const api = {
       getIntegrations: vi.fn().mockResolvedValue({
         strava: {
@@ -65,6 +67,7 @@ describe("SettingsPage", () => {
 
     render(<SettingsPage />);
 
+    await user.click(screen.getByRole("button", { name: /integrations/i }));
     expect(await screen.findByText("Connected as Demo Athlete")).toBeInTheDocument();
     expect(screen.getAllByText("Deferred")).toHaveLength(2);
     expect(screen.getByRole("button", { name: /disconnect/i })).toBeInTheDocument();

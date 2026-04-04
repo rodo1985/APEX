@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
-import { formatDateLabel, toDateInputValue } from "../lib/format";
+import { formatDateLabel } from "../lib/format";
 import { recordAudioOnce } from "../lib/voice";
 import type { FoodSearchResult, Ingredient, MealLog, MealType } from "../lib/types";
 
@@ -11,6 +11,40 @@ const DEFAULT_DRAFT = {
   meal_name: "",
   logged_at: new Date().toISOString().slice(0, 16),
   ingredients: [] as Ingredient[],
+};
+
+const mealCategoryMeta: Record<
+  MealType,
+  { label: string; time: string; image: string; accent: string }
+> = {
+  breakfast: {
+    label: "Breakfast",
+    time: "Morning",
+    image:
+      'linear-gradient(180deg, rgba(15,16,18,0.2), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=1200&q=80")',
+    accent: "var(--workspace-orange)",
+  },
+  lunch: {
+    label: "Lunch",
+    time: "Midday",
+    image:
+      'linear-gradient(180deg, rgba(15,16,18,0.18), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=1200&q=80")',
+    accent: "var(--workspace-teal)",
+  },
+  dinner: {
+    label: "Dinner",
+    time: "Evening",
+    image:
+      'linear-gradient(180deg, rgba(15,16,18,0.18), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=80")',
+    accent: "var(--workspace-blue)",
+  },
+  snack: {
+    label: "Snack",
+    time: "Anytime",
+    image:
+      'linear-gradient(180deg, rgba(15,16,18,0.18), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=1200&q=80")',
+    accent: "#a78bfa",
+  },
 };
 
 type ComposerMode = "manual" | "voice" | "photo" | null;
@@ -77,10 +111,16 @@ export function FoodLogPage() {
     );
   }, [draft.ingredients]);
 
-  function resetComposer(nextMode: ComposerMode = null) {
+  const totalLoggedCalories = meals.reduce((sum, meal) => sum + meal.total_calories, 0);
+
+  function resetComposer(nextMode: ComposerMode = null, mealType?: MealType) {
     setComposerMode(nextMode);
     setEditingMealId(null);
-    setDraft(DEFAULT_DRAFT);
+    setDraft({
+      ...DEFAULT_DRAFT,
+      meal_type: mealType ?? DEFAULT_DRAFT.meal_type,
+      logged_at: new Date().toISOString().slice(0, 16),
+    });
     setFoodQuery("");
     setFoodResults([]);
     setTranscriptHint("");
@@ -262,202 +302,253 @@ export function FoodLogPage() {
   }
 
   return (
-    <div className="page-grid">
-      <div className="section-copy">
-        <p className="eyebrow">Food log</p>
-        <h2>Review-first logging for real-world meals.</h2>
-        <p>
-          Manual search, voice, and photo flows all land in the same editable draft so nothing is persisted
-          until you confirm the ingredients and portions.
-        </p>
+    <div className="workspace-section">
+      <div className="workspace-page-header compact">
+        <div>
+          <span>Saturday, 21 March</span>
+          <h2>Food Log</h2>
+          <p>{Math.round(totalLoggedCalories)} cal logged today</p>
+        </div>
       </div>
 
       {error ? <div className="error-banner">{error}</div> : null}
 
-      <div className="inline-actions">
-        <button className="button-primary" type="button" onClick={() => setComposerMode("manual")}>
-          <Icon name="plus" />
-          Manual meal
+      <section className="log-action-grid">
+        <button className="log-action-card primary" type="button" onClick={() => setComposerMode("manual")}>
+          <Icon name="plus" size={22} />
+          <strong>Manual meal</strong>
+          <span>Build and review the meal card by card.</span>
         </button>
-        <button className="button-secondary" type="button" onClick={() => setComposerMode("voice")}>
-          <Icon name="mic" />
-          Voice meal
+        <button className="log-action-card" type="button" onClick={() => setComposerMode("voice")}>
+          <Icon name="mic" size={22} />
+          <strong>Voice meal</strong>
+          <span>Push-to-talk, then confirm the parsed ingredients.</span>
         </button>
-        <button className="button-secondary" type="button" onClick={() => setComposerMode("photo")}>
-          <Icon name="camera" />
-          Photo meal
+        <button className="log-action-card" type="button" onClick={() => setComposerMode("photo")}>
+          <Icon name="camera" size={22} />
+          <strong>Photo meal</strong>
+          <span>Upload a meal shot and approve the draft before save.</span>
         </button>
-      </div>
+      </section>
+
+      <section className="meal-category-grid">
+        {(Object.keys(mealCategoryMeta) as MealType[]).map((mealType) => {
+          const meta = mealCategoryMeta[mealType];
+          const categoryMeals = meals.filter((meal) => meal.meal_type === mealType);
+          const categoryCalories = categoryMeals.reduce((sum, meal) => sum + meal.total_calories, 0);
+
+          return (
+            <button
+              key={mealType}
+              type="button"
+              className="meal-category-card"
+              onClick={() => resetComposer("manual", mealType)}
+              style={{ backgroundImage: meta.image }}
+            >
+              <div className="training-hero-overlay" />
+              <div className="meal-category-content">
+                <div className="meal-category-time">{meta.time}</div>
+                <h3>{meta.label}</h3>
+                <div className="training-pill-row">
+                  <span className="training-pill accent" style={{ color: meta.accent }}>
+                    {categoryMeals.length} meals
+                  </span>
+                  <span className="training-pill">{Math.round(categoryCalories)} cal</span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </section>
 
       {composerMode ? (
-        <section className="meal-card">
-          <div className="meal-card-header">
+        <section className="workspace-card meal-composer-card">
+          <div className="settings-page-heading">
             <div>
-              <p className="eyebrow">{editingMealId ? "Edit meal" : composerMode === "manual" ? "Manual draft" : composerMode === "voice" ? "Voice review" : "Photo review"}</p>
-              <h3 style={{ margin: 0 }}>
+              <span>
+                {editingMealId
+                  ? "Edit meal"
+                  : composerMode === "manual"
+                    ? "Manual draft"
+                    : composerMode === "voice"
+                      ? "Voice review"
+                      : "Photo review"}
+              </span>
+              <h3>
                 {composerMode === "manual"
                   ? editingMealId
                     ? "Update the saved meal"
-                    : "Build and review the meal"
+                    : "Review before you log"
                   : composerMode === "voice"
                     ? "Record or describe the meal"
                     : "Upload a meal photo"}
               </h3>
             </div>
-            <button className="button-ghost" type="button" onClick={() => resetComposer(null)}>
+            <button className="workspace-text-button" type="button" onClick={() => resetComposer(null)}>
               Close
             </button>
           </div>
 
           {composerMode === "voice" ? (
-            <div className="page-grid" style={{ marginTop: "1rem" }}>
-              <div className="form-field">
-                <label htmlFor="transcript">Transcript hint (optional)</label>
+            <div className="settings-form-grid">
+              <label className="settings-field settings-field-wide">
+                <span>Transcript hint (optional)</span>
                 <textarea
                   id="transcript"
                   value={transcriptHint}
                   onChange={(event) => setTranscriptHint(event.target.value)}
                   placeholder="Example: I had overnight oats with banana and honey."
                 />
-              </div>
-              <button className="button-primary" type="button" onClick={() => void parseVoiceMeal()} disabled={parsing || recording}>
-                <Icon name="mic" />
+              </label>
+              <button
+                className="workspace-primary-button"
+                type="button"
+                onClick={() => void parseVoiceMeal()}
+                disabled={parsing || recording}
+              >
                 {recording ? "Recording..." : parsing ? "Parsing..." : "Record and parse"}
               </button>
             </div>
           ) : null}
 
           {composerMode === "photo" ? (
-            <div className="page-grid" style={{ marginTop: "1rem" }}>
-              <div className="form-field">
-                <label htmlFor="photo-upload">Meal photo</label>
+            <div className="settings-form-grid">
+              <label className="settings-field settings-field-wide">
+                <span>Meal photo</span>
                 <input
                   id="photo-upload"
                   type="file"
                   accept="image/*"
                   onChange={(event) => setPhotoFile(event.target.files?.[0] ?? null)}
                 />
-              </div>
-              <button className="button-primary" type="button" onClick={() => void parsePhotoMeal()} disabled={parsing}>
-                <Icon name="camera" />
+              </label>
+              <button className="workspace-primary-button" type="button" onClick={() => void parsePhotoMeal()} disabled={parsing}>
                 {parsing ? "Analyzing..." : "Analyze meal"}
               </button>
             </div>
           ) : null}
 
           {composerMode === "manual" ? (
-            <div className="page-grid grid-two" style={{ marginTop: "1rem" }}>
-              <div className="page-grid">
-                <div className="form-field">
-                  <label htmlFor="meal-name">Meal name</label>
+            <div className="composer-grid">
+              <div className="composer-column">
+                <label className="settings-field">
+                  <span>Meal name</span>
                   <input
                     id="meal-name"
                     value={draft.meal_name}
                     onChange={(event) => setDraft((previous) => ({ ...previous, meal_name: event.target.value }))}
                   />
-                </div>
-                <div className="split-inline">
-                  <div className="form-field">
-                    <label htmlFor="meal-type">Meal type</label>
+                </label>
+
+                <div className="settings-form-grid">
+                  <label className="settings-field">
+                    <span>Meal type</span>
                     <select
                       id="meal-type"
                       value={draft.meal_type}
-                      onChange={(event) => setDraft((previous) => ({ ...previous, meal_type: event.target.value as MealType }))}
+                      onChange={(event) =>
+                        setDraft((previous) => ({ ...previous, meal_type: event.target.value as MealType }))
+                      }
                     >
                       <option value="breakfast">Breakfast</option>
                       <option value="lunch">Lunch</option>
                       <option value="dinner">Dinner</option>
                       <option value="snack">Snack</option>
                     </select>
-                  </div>
-                  <div className="form-field">
-                    <label htmlFor="logged-at">Logged at</label>
+                  </label>
+
+                  <label className="settings-field">
+                    <span>Logged at</span>
                     <input
                       id="logged-at"
                       type="datetime-local"
                       value={draft.logged_at}
                       onChange={(event) => setDraft((previous) => ({ ...previous, logged_at: event.target.value }))}
                     />
-                  </div>
+                  </label>
                 </div>
 
-                <div className="form-field">
-                  <label htmlFor="food-search">Add ingredients</label>
+                <label className="settings-field">
+                  <span>Add ingredients</span>
                   <input
                     id="food-search"
                     value={foodQuery}
                     onChange={(event) => setFoodQuery(event.target.value)}
                     placeholder="Search oats, chicken, yogurt..."
                   />
-                </div>
+                </label>
 
-                <div className="settings-list">
+                <div className="settings-tab-stack">
                   {foodResults.map((food) => (
-                    <div key={food.food_id} className="settings-item">
-                      <div className="list-header">
-                        <div>
-                          <strong>{food.name}</strong>
-                          <p className="muted-copy" style={{ marginBottom: 0 }}>
-                            {food.calories} cal · {food.protein_g}P · {food.carbs_g}C · {food.fat_g}F
-                          </p>
-                        </div>
-                        <button className="button-secondary" type="button" onClick={() => addIngredientFromFood(food)}>
-                          Add
-                        </button>
+                    <div key={food.food_id} className="food-search-row">
+                      <div>
+                        <strong>{food.name}</strong>
+                        <p>
+                          {food.calories} cal · {food.protein_g}P · {food.carbs_g}C · {food.fat_g}F
+                        </p>
                       </div>
+                      <button className="workspace-secondary-button" type="button" onClick={() => addIngredientFromFood(food)}>
+                        Add
+                      </button>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="page-grid">
-                <div className="settings-item">
-                  <div className="meal-card-header">
-                    <div>
-                      <p className="eyebrow">Draft totals</p>
-                      <h3 style={{ margin: 0 }}>{Math.round(draftTotals.calories)} cal</h3>
-                    </div>
-                    <div className="inline-actions">
-                      <span className="button-ghost">{Math.round(draftTotals.protein)}P</span>
-                      <span className="button-ghost">{Math.round(draftTotals.carbs)}C</span>
-                      <span className="button-ghost">{Math.round(draftTotals.fat)}F</span>
-                    </div>
+              <div className="composer-column">
+                <section className="workspace-stat-card">
+                  <span>Draft totals</span>
+                  <strong>{Math.round(draftTotals.calories)} cal</strong>
+                  <div className="training-pill-row">
+                    <span className="training-pill">{Math.round(draftTotals.protein)}P</span>
+                    <span className="training-pill">{Math.round(draftTotals.carbs)}C</span>
+                    <span className="training-pill">{Math.round(draftTotals.fat)}F</span>
                   </div>
-                </div>
+                </section>
 
-                <div className="settings-list">
+                <div className="settings-tab-stack">
                   {draft.ingredients.map((ingredient, index) => (
-                    <div key={`${ingredient.name}-${index}`} className="settings-item">
-                      <div className="list-header">
+                    <div key={`${ingredient.name}-${index}`} className="ingredient-editor-card">
+                      <div className="food-search-row">
                         <div>
                           <strong>{ingredient.name}</strong>
-                          <p className="muted-copy" style={{ marginBottom: 0 }}>
-                            {Math.round(ingredient.calories)} cal · {Math.round(ingredient.protein_g)}P · {Math.round(ingredient.carbs_g)}C · {Math.round(ingredient.fat_g)}F
+                          <p>
+                            {Math.round(ingredient.calories)} cal · {Math.round(ingredient.protein_g)}P ·{" "}
+                            {Math.round(ingredient.carbs_g)}C · {Math.round(ingredient.fat_g)}F
                           </p>
                         </div>
-                        <button className="button-ghost" type="button" onClick={() => removeIngredient(index)}>
+                        <button className="workspace-text-button" type="button" onClick={() => removeIngredient(index)}>
                           Remove
                         </button>
                       </div>
-                      <div className="form-field" style={{ marginTop: "0.75rem", marginBottom: 0 }}>
-                        <label htmlFor={`quantity-${index}`}>Quantity (g)</label>
+                      <label className="settings-field compact">
+                        <span>Quantity (g)</span>
                         <input
                           id={`quantity-${index}`}
                           type="number"
                           value={ingredient.quantity_g}
                           onChange={(event) => updateIngredient(index, Number(event.target.value))}
                         />
-                      </div>
+                      </label>
                     </div>
                   ))}
-                  {draft.ingredients.length === 0 ? <div className="notice-banner">Add ingredients or parse a voice/photo meal to build the draft.</div> : null}
+                  {draft.ingredients.length === 0 ? (
+                    <div className="workspace-empty">
+                      Add ingredients or parse a voice/photo meal to build the draft.
+                    </div>
+                  ) : null}
                 </div>
 
-                <div className="inline-actions">
-                  <button className="button-primary" type="button" onClick={() => void saveDraft()} disabled={saving || draft.ingredients.length === 0}>
+                <div className="settings-inline-actions">
+                  <button
+                    className="workspace-primary-button"
+                    type="button"
+                    onClick={() => void saveDraft()}
+                    disabled={saving || draft.ingredients.length === 0}
+                  >
                     {saving ? "Saving..." : editingMealId ? "Update meal" : "Save meal"}
                   </button>
-                  <button className="button-secondary" type="button" onClick={() => resetComposer(null)}>
+                  <button className="workspace-secondary-button" type="button" onClick={() => resetComposer(null)}>
                     Cancel
                   </button>
                 </div>
@@ -467,36 +558,43 @@ export function FoodLogPage() {
         </section>
       ) : null}
 
-      <section className="panel">
-        <div className="section-copy">
-          <p className="eyebrow">Today&apos;s meals</p>
-          <h3 style={{ margin: 0 }}>Saved nutrition logs</h3>
+      <section className="workspace-card">
+        <div className="workspace-section-heading">
+          <div>
+            <span>Today&apos;s meals</span>
+            <h3>Saved nutrition logs</h3>
+          </div>
         </div>
+
         {loading ? (
-          <div className="notice-banner">Loading meals...</div>
+          <div className="workspace-empty">Loading meals...</div>
         ) : meals.length === 0 ? (
-          <div className="notice-banner">No meals have been logged yet today.</div>
+          <div className="workspace-empty">No meals have been logged yet today.</div>
         ) : (
-          <div className="meal-summary-list">
+          <div className="saved-meal-grid">
             {meals.map((meal) => (
-              <article key={meal.log_id} className="meal-summary-item">
-                <div className="meal-card-header">
+              <article key={meal.log_id} className="saved-meal-card">
+                <div className="food-search-row">
                   <div>
                     <strong>{meal.meal_name}</strong>
-                    <p className="muted-copy" style={{ marginBottom: 0 }}>
+                    <p>
                       {meal.meal_type} · {formatDateLabel(meal.logged_at)}
                     </p>
                   </div>
-                  <span className="status-pill">{Math.round(meal.total_calories)} cal</span>
+                  <span className="workspace-pill">{Math.round(meal.total_calories)} cal</span>
                 </div>
-                <div className="inline-actions" style={{ marginTop: "0.75rem" }}>
-                  <span className="button-ghost">{Math.round(meal.total_protein_g)}P</span>
-                  <span className="button-ghost">{Math.round(meal.total_carbs_g)}C</span>
-                  <span className="button-ghost">{Math.round(meal.total_fat_g)}F</span>
-                  <button className="button-secondary" type="button" onClick={() => openEdit(meal)}>
+
+                <div className="training-pill-row">
+                  <span className="training-pill">{Math.round(meal.total_protein_g)}P</span>
+                  <span className="training-pill">{Math.round(meal.total_carbs_g)}C</span>
+                  <span className="training-pill">{Math.round(meal.total_fat_g)}F</span>
+                </div>
+
+                <div className="settings-inline-actions">
+                  <button className="workspace-secondary-button" type="button" onClick={() => openEdit(meal)}>
                     Edit
                   </button>
-                  <button className="button-ghost" type="button" onClick={() => void deleteMeal(meal.log_id)}>
+                  <button className="workspace-text-button" type="button" onClick={() => void deleteMeal(meal.log_id)}>
                     Delete
                   </button>
                 </div>

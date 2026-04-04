@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 
+import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
 import { formatDateLabel, formatDistanceKm, formatDuration } from "../lib/format";
 import type {
@@ -44,7 +45,7 @@ export function TrainingPage() {
   }, []);
 
   const peakLoad = useMemo(
-    () => Math.max(...loadSeries.map((point) => point.ctl || point.atl || 1), 1),
+    () => Math.max(...loadSeries.map((point) => Math.max(point.ctl, point.atl, 1)), 1),
     [loadSeries],
   );
 
@@ -67,111 +68,167 @@ export function TrainingPage() {
   }
 
   if (!today) {
-    return <div className="notice-banner">Loading training data...</div>;
+    return <div className="workspace-empty">Loading training data...</div>;
   }
 
   const latestWeek = weekly.at(-1);
+  const planned = today.planned_activities[0] as { expected_tss?: number } | undefined;
+  const weeklyProgress = latestWeek
+    ? Math.min((latestWeek.total_tss / Math.max(planned?.expected_tss ?? latestWeek.total_tss, 1)) * 100, 100)
+    : 0;
 
   return (
-    <div className="page-grid">
-      <div className="list-header">
-        <div className="section-copy">
-          <p className="eyebrow">Training</p>
-          <h2>Load, trend, and recent sessions.</h2>
-          <p>APEX combines recent Strava activity with a generated daily brief so training and fuelling stay aligned.</p>
+    <div className="workspace-section">
+      <div className="workspace-page-header">
+        <div>
+          <span>This week</span>
+          <h2>Training</h2>
+          <p>Strava-backed load, recent sessions, and a clearer view of the current block.</p>
         </div>
-        <button className="button-primary" type="button" onClick={() => void handleSync()} disabled={syncing}>
+        <button className="workspace-primary-button" type="button" onClick={() => void handleSync()} disabled={syncing}>
           {syncing ? "Syncing..." : "Sync Strava"}
         </button>
       </div>
 
-      <div className="page-grid grid-three">
-        <article className="panel stat-card">
-          <span className="eyebrow">Current CTL</span>
-          <strong>{today.metrics.ctl}</strong>
-          <span className="muted-copy">Fitness baseline over the last 42 days.</span>
-        </article>
-        <article className="panel stat-card">
-          <span className="eyebrow">Current ATL</span>
-          <strong>{today.metrics.atl}</strong>
-          <span className="muted-copy">Short-term fatigue from the last seven days.</span>
-        </article>
-        <article className="panel stat-card">
-          <span className="eyebrow">Status</span>
-          <strong>{today.status}</strong>
-          <span className="muted-copy">TSB {today.metrics.tsb} based on the current load curve.</span>
-        </article>
-      </div>
-
-      <div className="page-grid grid-two">
-        <section className="panel">
-          <div className="section-copy">
-            <p className="eyebrow">Load curve</p>
-            <h3 style={{ margin: 0 }}>CTL trend over time</h3>
+      <section className="workspace-card training-summary-card">
+        <div className="workspace-section-heading">
+          <div>
+            <span>Weekly load</span>
+            <h3>{latestWeek?.total_tss ?? today.metrics.daily_tss} TSS</h3>
           </div>
-          <div className="chart">
-            {loadSeries.slice(-14).map((point) => (
-              <div
-                key={point.date}
-                className="chart-bar"
-                style={{ height: `${Math.max((point.ctl / peakLoad) * 100, 10)}%` }}
-              >
-                <span>{formatDateLabel(point.date)}</span>
-              </div>
-            ))}
+          <div className="workspace-support-copy">
+            {latestWeek
+              ? `${latestWeek.total_hours} h · ${latestWeek.total_distance_km} km`
+              : `${today.metrics.daily_tss} TSS today`}
           </div>
-        </section>
-
-        <section className="panel">
-          <div className="section-copy">
-            <p className="eyebrow">Weekly summary</p>
-            <h3 style={{ margin: 0 }}>Latest block</h3>
-          </div>
-          {latestWeek ? (
-            <div className="settings-item">
-              <div className="list-header">
-                <div>
-                  <strong>{latestWeek.total_tss} TSS</strong>
-                  <p className="muted-copy" style={{ marginBottom: 0 }}>
-                    {latestWeek.total_hours} hours · {latestWeek.total_distance_km} km · {latestWeek.activities_count} activities
-                  </p>
-                </div>
-                <span className="status-pill">{formatDateLabel(latestWeek.week_start)}</span>
-              </div>
-            </div>
-          ) : (
-            <div className="notice-banner">No weekly data is available yet.</div>
-          )}
-        </section>
-      </div>
-
-      <section className="panel">
-        <div className="section-copy">
-          <p className="eyebrow">Recent sessions</p>
-          <h3 style={{ margin: 0 }}>Activity history</h3>
         </div>
-        <div className="activity-list">
-          {activities.map((activity) => (
-            <article key={activity.activity_id} className="activity-item">
-              <div className="list-header">
-                <div>
-                  <strong>{activity.name}</strong>
-                  <p className="muted-copy" style={{ marginBottom: 0 }}>
-                    {formatDateLabel(activity.start_time)} · {activity.sport}
-                  </p>
-                </div>
-                <span className="status-pill">{activity.tss} TSS</span>
-              </div>
-              <div className="inline-actions" style={{ marginTop: "0.75rem" }}>
-                <span className="button-ghost">{formatDistanceKm(activity.distance_m)}</span>
-                <span className="button-ghost">{formatDuration(activity.duration_seconds)}</span>
-                {activity.avg_power_w ? <span className="button-ghost">{Math.round(activity.avg_power_w)} W</span> : null}
-                {activity.avg_hr ? <span className="button-ghost">{activity.avg_hr} bpm</span> : null}
-              </div>
-            </article>
-          ))}
+
+        <div className="training-progress-bar">
+          <div style={{ width: `${Math.max(weeklyProgress, 8)}%` }} />
+        </div>
+
+        <div className="training-summary-grid">
+          <div>
+            <strong>{today.metrics.ctl}</strong>
+            <span>CTL</span>
+          </div>
+          <div>
+            <strong>{today.metrics.atl}</strong>
+            <span>ATL</span>
+          </div>
+          <div>
+            <strong>{today.metrics.tsb}</strong>
+            <span>TSB</span>
+          </div>
+          <div>
+            <strong>{latestWeek?.activities_count ?? activities.length}</strong>
+            <span>Sessions</span>
+          </div>
         </div>
       </section>
+
+      <div className="today-grid">
+        <div className="today-column">
+          <section className="workspace-card">
+            <div className="workspace-section-heading">
+              <div>
+                <span>Load curve</span>
+                <h3>CTL trend</h3>
+              </div>
+              <div className="workspace-pill">{today.status}</div>
+            </div>
+
+            <div className="today-chart">
+              {loadSeries.slice(-14).map((point) => (
+                <div key={point.date} className="today-chart-column">
+                  <div
+                    className="today-chart-bar training-load-bar"
+                    style={{ height: `${Math.max((point.ctl / peakLoad) * 100, 10)}%` }}
+                  />
+                  <span>{formatDateLabel(point.date)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        <div className="today-column">
+          <section className="workspace-card">
+            <div className="workspace-section-heading">
+              <div>
+                <span>Latest block</span>
+                <h3>{latestWeek ? formatDateLabel(latestWeek.week_start) : "Awaiting data"}</h3>
+              </div>
+              <div className="workspace-linkish">Current trend</div>
+            </div>
+            {latestWeek ? (
+              <div className="training-summary-grid">
+                <div>
+                  <strong>{latestWeek.total_tss}</strong>
+                  <span>TSS</span>
+                </div>
+                <div>
+                  <strong>{latestWeek.total_hours}</strong>
+                  <span>Hours</span>
+                </div>
+                <div>
+                  <strong>{latestWeek.total_distance_km}</strong>
+                  <span>KM</span>
+                </div>
+                <div>
+                  <strong>{latestWeek.activities_count}</strong>
+                  <span>Activities</span>
+                </div>
+              </div>
+            ) : (
+              <div className="workspace-empty">No weekly data is available yet.</div>
+            )}
+          </section>
+        </div>
+      </div>
+
+      <div className="workspace-page-header compact">
+        <div>
+          <span>Activities</span>
+          <h2>Recent sessions</h2>
+        </div>
+      </div>
+
+      <div className="training-card-stack">
+        {activities.map((activity) => (
+          <article
+            key={activity.activity_id}
+            className="training-hero"
+            style={{ backgroundImage: activityHeroBackground(activity.sport) }}
+          >
+            <div className="training-hero-overlay" />
+            <div className="training-hero-content">
+              <div className="training-hero-source">
+                <Icon name={activity.sport === "running" ? "run" : "bike"} size={11} />
+                STRAVA
+              </div>
+              <h4>{activity.name}</h4>
+              <div className="workspace-support-copy training-support-copy">
+                {formatDateLabel(activity.start_time)} · {activity.sport}
+              </div>
+              <div className="training-pill-row">
+                <span className="training-pill accent">{formatDistanceKm(activity.distance_m)}</span>
+                <span className="training-pill">{formatDuration(activity.duration_seconds)}</span>
+                <span className="training-pill">{activity.tss} TSS</span>
+                {activity.avg_power_w ? <span className="training-pill">{Math.round(activity.avg_power_w)} W</span> : null}
+              </div>
+            </div>
+          </article>
+        ))}
+      </div>
     </div>
   );
+}
+
+function activityHeroBackground(sport: "cycling" | "running") {
+  if (sport === "running") {
+    return 'linear-gradient(180deg, rgba(15,16,18,0.2), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1486218119243-13883505764c?w=1200&q=80")';
+  }
+
+  return 'linear-gradient(180deg, rgba(15,16,18,0.18), rgba(15,16,18,0.82)), url("https://images.unsplash.com/photo-1541625602330-2277a4c46182?w=1200&q=80")';
 }

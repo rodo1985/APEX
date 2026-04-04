@@ -80,7 +80,17 @@ export function Icon({
     | "heart"
     | "calendar"
     | "logout"
-    | "check";
+    | "check"
+    | "send"
+    | "close"
+    | "menu"
+    | "user"
+    | "key"
+    | "link2"
+    | "chevron"
+    | "moon"
+    | "run"
+    | "info";
   size?: number;
 }) {
   const common = {
@@ -133,6 +143,12 @@ export function Icon({
       </>
     ),
     plus: <path d="M12 5v14M5 12h14" />,
+    close: (
+      <>
+        <path d="m18 6-12 12" />
+        <path d="m6 6 12 12" />
+      </>
+    ),
     search: (
       <>
         <circle cx="11" cy="11" r="7" />
@@ -140,10 +156,18 @@ export function Icon({
       </>
     ),
     arrow: <path d="M5 12h14M12 5l7 7-7 7" />,
+    chevron: <path d="m9 18 6-6-6-6" />,
     bell: (
       <>
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
         <path d="M10 21a2 2 0 0 0 4 0" />
+      </>
+    ),
+    menu: (
+      <>
+        <path d="M3 6h18" />
+        <path d="M3 12h18" />
+        <path d="M3 18h18" />
       </>
     ),
     target: (
@@ -155,11 +179,32 @@ export function Icon({
     ),
     bolt: <path d="M13 2 3 14h7l-1 8 10-12h-7l1-8Z" />,
     drop: <path d="M12 2C7.5 8 5 12.2 5 16a7 7 0 0 0 14 0c0-3.8-2.5-8-7-14Z" />,
+    moon: <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z" />,
     heart: <path d="m12 21-7-7a5 5 0 0 1 7-7l0 0a5 5 0 0 1 7 7Z" />,
     calendar: (
       <>
         <rect x="3" y="4" width="18" height="18" rx="2" />
         <path d="M16 2v4M8 2v4M3 10h18" />
+      </>
+    ),
+    user: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+      </>
+    ),
+    key: (
+      <>
+        <circle cx="7.5" cy="15.5" r="3.5" />
+        <path d="M11 12l8-8" />
+        <path d="M17 6l2 2" />
+        <path d="M15 8l2 2" />
+      </>
+    ),
+    link2: (
+      <>
+        <path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7.1-7.1L11.7 5" />
+        <path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.6" />
       </>
     ),
     logout: (
@@ -170,6 +215,27 @@ export function Icon({
       </>
     ),
     check: <path d="m20 6-11 11-5-5" />,
+    send: (
+      <>
+        <path d="m22 2-9.5 19-2.5-8.5L2 10 22 2Z" />
+      </>
+    ),
+    run: (
+      <>
+        <circle cx="17" cy="4" r="1.5" fill="currentColor" stroke="none" />
+        <path d="m11 7 2-3 4 2-2 4" />
+        <path d="m4 13 3-2 3.5 3-3 4" />
+        <path d="m13.5 12 4 2-2 5" />
+        <path d="m7.5 21 2-5 3.5 2" />
+      </>
+    ),
+    info: (
+      <>
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 16v-4" />
+        <path d="M12 8h.01" />
+      </>
+    ),
   };
 
   return <svg {...common}>{icons[name]}</svg>;
