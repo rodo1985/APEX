@@ -22,7 +22,7 @@ export function ApexIcon({ size = 56, mode = "dark" }: { size?: number; mode?: "
         strokeWidth="2"
       />
       <polyline
-        points="18,34 23,34 27,25 31,43 35,19 39,43 43,30 47,34 54,34"
+        points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
         fill="none"
         stroke={stroke}
         strokeWidth="2.2"
