@@ -91,6 +91,14 @@ npm run build
 npm run generate:api
 ```
 
+Design previews:
+
+```bash
+cd docs/design
+npm install
+npm run dev
+```
+
 ## Configuration
 
 ### Backend environment
@@ -142,6 +150,8 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
   Landing, onboarding, product pages, and Strava callback handling.
 - [docs](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs)
   Original product/design documentation plus implementation notes.
+- [docs/design](/Users/REDONSX1/.codex/worktrees/a78a/APEX/docs/design)
+  Standalone JSX design explorations plus a dedicated local preview workspace for rendering them.
 - [docs/implementation/APEX_MVP_IMPLEMENTATION.md](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs/implementation/APEX_MVP_IMPLEMENTATION.md)
   Build summary, deferred scope, and local workflow notes for this MVP scaffold.
 
@@ -149,5 +159,6 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
 
 - When the backend contract changes, regenerate both [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json) and [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
 - Keep the React UI aligned with the product design docs in `docs/design`.
+- Use the `docs/design` preview app when iterating on standalone JSX mockups before promoting a design into `frontend`.
 - Keep the README and `docs/implementation` notes updated whenever routes, setup, configuration, or workflow changes.
 - The backend currently uses SQLite for zero-friction local development, but the schema and service layout are intended to transfer cleanly to Postgres.
