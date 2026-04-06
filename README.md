@@ -14,8 +14,8 @@ The current build is optimized for local product iteration. It runs fully offlin
 - Dynamic day-type nutrition targets cached per day.
 - Strava connection flow with 90-day onboarding import, manual sync, and training load metrics.
 - Persisted coach conversations grounded in profile, nutrition, and training context.
-- Generated backend OpenAPI document at [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json).
-- Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
+- Generated backend OpenAPI document at [backend/openapi.json](backend/openapi.json).
+- Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](frontend/src/lib/generated/openapi.ts).
 
 ### Explicitly Deferred
 
@@ -91,17 +91,51 @@ npm run build
 npm run generate:api
 ```
 
+## Vercel Deployment
+
+APEX is intended to run as two separate Vercel projects in the same monorepo:
+
+- `frontend/` -> `apex-web`
+- `backend/` -> `apex-api`
+
+The frontend is a Vite SPA, so Vercel needs a rewrite that sends all non-file routes to `index.html`. The backend is a native FastAPI app with `backend/index.py` exposing the existing FastAPI instance.
+
+Recommended deployment flow:
+
+```bash
+# Link each folder to its own Vercel project
+cd frontend
+vercel link --yes --team team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-web
+
+cd ../backend
+vercel link --yes --team team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-api
+
+# Then deploy each project separately from its own folder
+vercel deploy --prod -y
+```
+
+Production environment variables:
+
+- Frontend: `VITE_API_URL=https://<apex-api-domain>/v1`
+- Backend: `APEX_DATABASE_URL` points to Supabase Postgres, plus `APEX_ALLOWED_ORIGINS`, `APEX_FRONTEND_URL`, and provider credentials
+
+Important Vercel notes:
+
+- Production should use Postgres, not the local SQLite default.
+- Runtime schema creation is only enabled for local SQLite development; production schema should be applied with Alembic.
+- Preview deployments are deferred until production is stable.
+
 ## Configuration
 
 ### Backend environment
 
-Copy [backend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/.env.example) to `backend/.env`.
+Copy [backend/.env.example](backend/.env.example) to `backend/.env`.
 
 Important values:
 
 - `APEX_DATABASE_URL`
   Local development defaults to SQLite (`sqlite:///./apex.db`).
-  Production intent remains Postgres as the system of record.
+  Production uses Supabase Postgres as the system of record.
 - `APEX_ALLOWED_ORIGINS`
   Comma-separated CORS origins for the frontend.
   The local defaults include both `http://localhost:5173` and `http://127.0.0.1:5173`.
@@ -120,7 +154,7 @@ Notes:
 
 ### Frontend environment
 
-Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/.env.example) to `frontend/.env`.
+Copy [frontend/.env.example](frontend/.env.example) to `frontend/.env`.
 
 - `VITE_API_URL`
   Points the React app at the versioned API base.
@@ -128,26 +162,27 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
 
 ## Project Structure
 
-- [backend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend)
+- [backend](backend)
   FastAPI app, SQLAlchemy models, Alembic migration, tests, and OpenAPI export.
-- [backend/app/api.py](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/app/api.py)
+- [backend/app/api.py](backend/app/api.py)
   Public API routes for auth, nutrition, training, coach, and settings.
-- [backend/app/services](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/app/services)
+- [backend/app/services](backend/app/services)
   Domain services for auth, nutrition, training, provider adapters, and coach logic.
-- [frontend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend)
+- [frontend](frontend)
   Vite + React application, tests, styles, and generated API schema types.
-- [frontend/src/app/routes.tsx](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/app/routes.tsx)
+- [frontend/src/app/routes.tsx](frontend/src/app/routes.tsx)
   Top-level route protection and app navigation flow.
-- [frontend/src/pages](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/pages)
+- [frontend/src/pages](frontend/src/pages)
   Landing, onboarding, product pages, and Strava callback handling.
-- [docs](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs)
+- [docs](docs)
   Original product/design documentation plus implementation notes.
-- [docs/implementation/APEX_MVP_IMPLEMENTATION.md](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs/implementation/APEX_MVP_IMPLEMENTATION.md)
+- [docs/implementation/APEX_MVP_IMPLEMENTATION.md](docs/implementation/APEX_MVP_IMPLEMENTATION.md)
   Build summary, deferred scope, and local workflow notes for this MVP scaffold.
 
 ## Development Notes
 
-- When the backend contract changes, regenerate both [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json) and [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
+- When the backend contract changes, regenerate both [backend/openapi.json](backend/openapi.json) and [frontend/src/lib/generated/openapi.ts](frontend/src/lib/generated/openapi.ts).
 - Keep the React UI aligned with the product design docs in `docs/design`.
 - Keep the README and `docs/implementation` notes updated whenever routes, setup, configuration, or workflow changes.
 - The backend currently uses SQLite for zero-friction local development, but the schema and service layout are intended to transfer cleanly to Postgres.
+- Vercel production deployment should use the FastAPI backend in `backend/index.py` and the Vite SPA rewrite in `frontend/vercel.json`.

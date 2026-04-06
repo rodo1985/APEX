@@ -37,9 +37,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         True
     """
 
-    Base.metadata.create_all(bind=engine)
-    with Session(bind=engine) as session:
-        seed_food_items(session)
+    if settings.database_url.startswith("sqlite"):
+        # Keep the zero-friction local developer experience, but avoid runtime
+        # schema creation and implicit seeding in production deployments.
+        Base.metadata.create_all(bind=engine)
+        with Session(bind=engine) as session:
+            seed_food_items(session)
     yield
 
 
