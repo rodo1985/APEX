@@ -4,6 +4,8 @@ APEX is a web MVP for endurance athletes who want nutrition, training, and coach
 
 The current build is optimized for local product iteration. It runs fully offline with deterministic mock Strava data by default, but it can also use live provider credentials when they are present in backend configuration.
 
+There is also an in-progress Supabase-backed nutrition prototype in [docs/design/apex-daily-log.jsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/design/apex-daily-log.jsx). That prototype is intended to enrich the dashboard and historical food log without forcing an all-at-once backend migration.
+
 ## Key Features / Scope
 
 - Landing page plus authenticated product workspace.
@@ -14,6 +16,7 @@ The current build is optimized for local product iteration. It runs fully offlin
 - Dynamic day-type nutrition targets cached per day.
 - Strava connection flow with 90-day onboarding import, manual sync, and training load metrics.
 - Persisted coach conversations grounded in profile, nutrition, and training context.
+- Optional Supabase prototype path for richer dashboard and historical food-log reads.
 - Generated backend OpenAPI document at [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json).
 - Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
 
@@ -37,6 +40,7 @@ The current build is optimized for local product iteration. It runs fully offlin
 ```bash
 cd backend
 uv venv
+source .venv/bin/activate
 uv sync
 cp .env.example .env
 ```
@@ -112,11 +116,15 @@ Important values:
 - `APEX_STRAVA_REDIRECT_URI`
 - `APEX_ANTHROPIC_API_KEY`
 - `APEX_OPENAI_API_KEY`
+- `APEX_SUPABASE_URL`
+- `APEX_SUPABASE_SERVICE_ROLE_KEY`
+- `APEX_SUPABASE_SCHEMA`
 
 Notes:
 
 - If Strava credentials are missing, APEX falls back to the deterministic mock provider.
 - If Anthropic/OpenAI keys are missing, coach, voice, and photo flows still work through deterministic local fallbacks.
+- Keep the Supabase service-role key server-side only.
 
 ### Frontend environment
 
@@ -125,6 +133,16 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
 - `VITE_API_URL`
   Points the React app at the versioned API base.
   When omitted in local development, the frontend falls back to the current browser hostname on port `8000`.
+- `VITE_SUPABASE_URL`
+  Supabase project URL for the dashboard and historical daily-log prototype.
+- `VITE_SUPABASE_ANON_KEY`
+  Frontend read-only key for approved prototype queries.
+- `VITE_SUPABASE_USER_ID`
+  Temporary selector for the `user_id` field used in the provided Supabase schema.
+
+Prototype note:
+
+- The intended split is FastAPI for auth, coach, uploads, and existing MVP flows, with Supabase used as a read model for the richer nutrition dashboard and historical daily log until both paths are unified.
 
 ## Project Structure
 
@@ -144,6 +162,8 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
   Original product/design documentation plus implementation notes.
 - [docs/implementation/APEX_MVP_IMPLEMENTATION.md](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs/implementation/APEX_MVP_IMPLEMENTATION.md)
   Build summary, deferred scope, and local workflow notes for this MVP scaffold.
+- [docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md)
+  Parallel implementation plan for the Supabase-backed dashboard and food-log prototype.
 
 ## Development Notes
 
