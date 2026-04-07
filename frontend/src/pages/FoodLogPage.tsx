@@ -4,7 +4,7 @@ import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
 import { formatDateLabel, formatRelativeDayLabel, shiftIsoDate, toIsoDate } from "../lib/format";
 import { getPrototypeFoodLogDay, type PrototypeFoodLogDay } from "../lib/prototypeNutrition";
-import { isPrototypeSupabaseConfigured } from "../lib/prototypeSupabaseRest";
+import { isPrototypeSchemaMismatchError, isPrototypeSupabaseConfigured } from "../lib/prototypeSupabaseRest";
 import { recordAudioOnce } from "../lib/voice";
 import type { FoodSearchResult, Ingredient, MealLog, MealType } from "../lib/types";
 
@@ -53,6 +53,7 @@ type ComposerMode = "manual" | "voice" | "photo" | null;
 
 export function FoodLogPage() {
   const { api } = useSession();
+  const prototypeConfigured = isPrototypeSupabaseConfigured();
   const [meals, setMeals] = useState<MealLog[]>([]);
   const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
   const [prototypeDay, setPrototypeDay] = useState<PrototypeFoodLogDay | null>(null);
@@ -68,9 +69,10 @@ export function FoodLogPage() {
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [recording, setRecording] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [prototypeAvailable, setPrototypeAvailable] = useState(prototypeConfigured);
 
   const todayDate = toIsoDate(new Date());
-  const prototypeEnabled = isPrototypeSupabaseConfigured();
+  const prototypeEnabled = prototypeConfigured && prototypeAvailable;
   const isViewingToday = selectedDate === todayDate;
   const canNextDay = selectedDate < todayDate;
   const isPrototypeHistoryMode = prototypeEnabled && !isViewingToday;
@@ -82,10 +84,21 @@ export function FoodLogPage() {
 
     try {
       if (prototypeEnabled && date !== todayDate) {
-        const day = await getPrototypeFoodLogDay(date);
-        setPrototypeDay(day);
-        setMeals([]);
-        return;
+        try {
+          const day = await getPrototypeFoodLogDay(date);
+          setPrototypeDay(day);
+          setMeals([]);
+          return;
+        } catch (requestError) {
+          if (!isPrototypeSchemaMismatchError(requestError)) {
+            throw requestError;
+          }
+
+          // When the connected Supabase project only has the production schema,
+          // fall back to the FastAPI nutrition log instead of surfacing a
+          // prototype-only missing-table error in the live app.
+          setPrototypeAvailable(false);
+        }
       }
 
       setPrototypeDay(null);

@@ -8,6 +8,7 @@ const mockedUseSession = vi.fn();
 const mockedRecordAudioOnce = vi.fn();
 const mockedGetPrototypeFoodLogDay = vi.fn();
 const mockedIsPrototypeSupabaseConfigured = vi.fn();
+const mockedIsPrototypeSchemaMismatchError = vi.fn();
 
 vi.mock("../lib/auth", () => ({
   useSession: () => mockedUseSession(),
@@ -19,6 +20,7 @@ vi.mock("../lib/prototypeNutrition", () => ({
 
 vi.mock("../lib/prototypeSupabaseRest", () => ({
   isPrototypeSupabaseConfigured: () => mockedIsPrototypeSupabaseConfigured(),
+  isPrototypeSchemaMismatchError: (...args: unknown[]) => mockedIsPrototypeSchemaMismatchError(...args),
 }));
 
 vi.mock("../lib/voice", () => ({
@@ -29,6 +31,7 @@ describe("FoodLogPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockedIsPrototypeSupabaseConfigured.mockReturnValue(false);
+    mockedIsPrototypeSchemaMismatchError.mockReturnValue(false);
   });
 
   it("supports manual meal drafting with food search results", async () => {
@@ -271,5 +274,67 @@ describe("FoodLogPage", () => {
     expect(screen.getByText("Chicken rice bowl")).toBeInTheDocument();
     expect(screen.getByText("Activities linked to this day")).toBeInTheDocument();
     expect(within(view.container).queryByRole("button", { name: /manual meal/i })).not.toBeInTheDocument();
+  });
+
+  it("falls back to the FastAPI meal log when the legacy Supabase prototype schema is missing", async () => {
+    const user = userEvent.setup();
+    const previousDay = new Date();
+    previousDay.setDate(previousDay.getDate() - 1);
+    const expectedPreviousDate = previousDay.toISOString().slice(0, 10);
+    const api = {
+      getNutritionLog: vi
+        .fn()
+        .mockResolvedValueOnce({ logs: [] })
+        .mockResolvedValueOnce({
+          logs: [
+            {
+              log_id: "meal-1",
+              meal_type: "lunch",
+              meal_name: "API fallback lunch",
+              logged_at: "2026-04-06T12:15:00.000Z",
+              source: "manual",
+              total_calories: 610,
+              total_protein_g: 39,
+              total_carbs_g: 68,
+              total_fat_g: 17,
+              ingredients: [
+                {
+                  ingredient_id: "ingredient-1",
+                  food_id: null,
+                  name: "Chicken rice bowl",
+                  quantity_g: 240,
+                  calories: 610,
+                  protein_g: 39,
+                  carbs_g: 68,
+                  fat_g: 17,
+                },
+              ],
+            },
+          ],
+        }),
+      searchFoods: vi.fn(),
+      createMealLog: vi.fn(),
+      updateMealLog: vi.fn(),
+      deleteMealLog: vi.fn(),
+      parseVoiceMeal: vi.fn(),
+      parsePhotoMeal: vi.fn(),
+    };
+
+    mockedUseSession.mockReturnValue({ api });
+    mockedIsPrototypeSupabaseConfigured.mockReturnValue(true);
+    mockedGetPrototypeFoodLogDay.mockRejectedValue(
+      new Error("Could not find the table 'public.daily_log' in the schema cache."),
+    );
+    mockedIsPrototypeSchemaMismatchError.mockImplementation((error: unknown) => {
+      return error instanceof Error && error.message.includes("public.daily_log");
+    });
+
+    render(<FoodLogPage />);
+
+    await user.click(screen.getByRole("button", { name: /previous day/i }));
+
+    expect(await screen.findByText("API fallback lunch")).toBeInTheDocument();
+    expect(screen.queryByText(/could not find the table/i)).not.toBeInTheDocument();
+    expect(api.getNutritionLog).toHaveBeenLastCalledWith(expectedPreviousDate, expectedPreviousDate);
   });
 });

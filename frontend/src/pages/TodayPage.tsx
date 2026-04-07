@@ -19,7 +19,7 @@ import {
   type PrototypeDashboardDay,
   type PrototypeWeekDayRollup,
 } from "../lib/prototypeNutrition";
-import { isPrototypeSupabaseConfigured } from "../lib/prototypeSupabaseRest";
+import { isPrototypeSchemaMismatchError, isPrototypeSupabaseConfigured } from "../lib/prototypeSupabaseRest";
 import type {
   NutritionTodayResponse,
   NutritionWeeklyResponse,
@@ -93,6 +93,7 @@ type TrendPoint = {
 
 export function TodayPage() {
   const { api } = useSession();
+  const prototypeConfigured = isPrototypeSupabaseConfigured();
   const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
   const [nutrition, setNutrition] = useState<NutritionTodayResponse | null>(null);
   const [weeklyNutrition, setWeeklyNutrition] = useState<NutritionWeeklyResponse | null>(null);
@@ -103,12 +104,15 @@ export function TodayPage() {
   const [trendMetric, setTrendMetric] = useState<TrendMetric>("calories");
   const [selectedTrendDate, setSelectedTrendDate] = useState<string | null>(null);
   const [expandedMealId, setExpandedMealId] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [prototypeError, setPrototypeError] = useState<string | null>(null);
   const [prototypeLoading, setPrototypeLoading] = useState(false);
+  const [prototypeAvailable, setPrototypeAvailable] = useState(prototypeConfigured);
 
   const todayDate = toIsoDate(new Date());
-  const prototypeEnabled = isPrototypeSupabaseConfigured();
-  const canGoNext = prototypeEnabled && selectedDate < todayDate;
+  const prototypeEnabled = prototypeConfigured && prototypeAvailable;
+  const error = apiError ?? prototypeError;
+  const canGoNext = selectedDate < todayDate;
 
   useEffect(() => {
     async function loadApi() {
@@ -124,7 +128,7 @@ export function TodayPage() {
         setTraining(trainingToday);
         setTrainingLoadSeries(trainingLoadResponse.series);
       } catch (requestError) {
-        setError(requestError instanceof Error ? requestError.message : "Unable to load the dashboard.");
+        setApiError(requestError instanceof Error ? requestError.message : "Unable to load the dashboard.");
       }
     }
 
@@ -139,7 +143,7 @@ export function TodayPage() {
     }
 
     setPrototypeLoading(true);
-    setError(null);
+    setPrototypeError(null);
 
     void Promise.all([getPrototypeDashboardDay(selectedDate), getPrototypeWeekRollup(selectedDate)])
       .then(([day, week]) => {
@@ -147,7 +151,18 @@ export function TodayPage() {
         setPrototypeWeek(week.days);
       })
       .catch((requestError) => {
-        setError(requestError instanceof Error ? requestError.message : "Unable to load the Supabase prototype.");
+        if (isPrototypeSchemaMismatchError(requestError)) {
+          // The deployed app should gracefully fall back when the legacy
+          // prototype tables are not present in the connected Supabase project.
+          setPrototypeAvailable(false);
+          setPrototypeDay(null);
+          setPrototypeWeek([]);
+          return;
+        }
+
+        setPrototypeError(
+          requestError instanceof Error ? requestError.message : "Unable to load the Supabase prototype.",
+        );
       })
       .finally(() => {
         setPrototypeLoading(false);

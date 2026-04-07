@@ -8,6 +8,7 @@ const mockedUseSession = vi.fn();
 const mockedGetPrototypeDashboardDay = vi.fn();
 const mockedGetPrototypeWeekRollup = vi.fn();
 const mockedIsPrototypeSupabaseConfigured = vi.fn();
+const mockedIsPrototypeSchemaMismatchError = vi.fn();
 
 vi.mock("../lib/auth", () => ({
   useSession: () => mockedUseSession(),
@@ -20,12 +21,14 @@ vi.mock("../lib/prototypeNutrition", () => ({
 
 vi.mock("../lib/prototypeSupabaseRest", () => ({
   isPrototypeSupabaseConfigured: () => mockedIsPrototypeSupabaseConfigured(),
+  isPrototypeSchemaMismatchError: (...args: unknown[]) => mockedIsPrototypeSchemaMismatchError(...args),
 }));
 
 describe("TodayPage", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     mockedIsPrototypeSupabaseConfigured.mockReturnValue(true);
+    mockedIsPrototypeSchemaMismatchError.mockReturnValue(false);
   });
 
   it("switches the weekly trend between calories and training load", async () => {
@@ -374,5 +377,73 @@ describe("TodayPage", () => {
     expect(document.querySelector(".dashboard-loader .apex-wordmark")?.textContent).toBe("APEX");
     expect(screen.getByText("Loading dashboard data")).toBeInTheDocument();
     expect(screen.getByText("Syncing nutrition, activity, and target context.")).toBeInTheDocument();
+  });
+
+  it("falls back to the FastAPI dashboard when the legacy Supabase prototype schema is missing", async () => {
+    mockedUseSession.mockReturnValue({
+      api: {
+        getNutritionToday: vi.fn().mockResolvedValue({
+          summary: {
+            calories_consumed: 1650,
+            calories_target: 2100,
+            protein_g: 132,
+            carbs_g: 180,
+            fat_g: 52,
+            target_day_type: "moderate",
+          },
+          meals: [
+            {
+              log_id: "meal-1",
+              meal_name: "API lunch",
+              meal_type: "lunch",
+              logged_at: "2026-04-07T12:00:00.000Z",
+              total_calories: 640,
+              total_protein_g: 41,
+              total_carbs_g: 73,
+              total_fat_g: 18,
+              ingredients: [
+                {
+                  ingredient_id: "ingredient-1",
+                  food_id: null,
+                  name: "Rice bowl",
+                  quantity_g: 250,
+                  calories: 640,
+                  protein_g: 41,
+                  carbs_g: 73,
+                  fat_g: 18,
+                },
+              ],
+            },
+          ],
+        }),
+        getNutritionWeekly: vi.fn().mockResolvedValue({
+          days: [{ date: "2026-04-07", calories: 1650 }],
+        }),
+        getTrainingToday: vi.fn().mockResolvedValue({
+          date: "2026-04-07",
+          metrics: { ctl: 58, atl: 61, tsb: -3, daily_tss: 48 },
+          status: "optimal",
+          planned_activities: [],
+          completed_activities: [],
+        }),
+        getTrainingLoad: vi.fn().mockResolvedValue({
+          series: [{ date: "2026-04-07", ctl: 56, atl: 60, tsb: -4, daily_tss: 48 }],
+        }),
+      },
+    });
+    mockedGetPrototypeDashboardDay.mockRejectedValue(
+      new Error("Could not find the table 'public.daily_log' in the schema cache."),
+    );
+    mockedGetPrototypeWeekRollup.mockRejectedValue(
+      new Error("Could not find the table 'public.daily_log' in the schema cache."),
+    );
+    mockedIsPrototypeSchemaMismatchError.mockImplementation((error: unknown) => {
+      return error instanceof Error && error.message.includes("public.daily_log");
+    });
+
+    render(<TodayPage />);
+
+    expect(await screen.findByRole("heading", { name: "Seven-day trend" })).toBeInTheDocument();
+    expect(screen.queryByText(/could not find the table/i)).not.toBeInTheDocument();
   });
 });

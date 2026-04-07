@@ -19,12 +19,41 @@ interface SupabaseSelectOptions {
 }
 
 const DEFAULT_USER_ID = "sergio";
+const LEGACY_PROTOTYPE_RESOURCES = [
+  "profile",
+  "daily_log",
+  "meals",
+  "food_items",
+  "activities",
+  "daily_totals",
+  "meal_totals",
+];
 
 /**
  * Returns whether the frontend prototype Supabase configuration is present.
  */
 export function isPrototypeSupabaseConfigured() {
   return Boolean(readSupabaseUrl() && readSupabaseAnonKey());
+}
+
+/**
+ * Returns whether an error means the legacy Supabase prototype schema is absent.
+ */
+export function isPrototypeSchemaMismatchError(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  const message = error.message.toLowerCase();
+  const referencesLegacyResource = LEGACY_PROTOTYPE_RESOURCES.some((resource) => message.includes(resource));
+  const describesMissingResource =
+    message.includes("could not find the table") ||
+    message.includes("schema cache") ||
+    message.includes("does not exist") ||
+    (message.includes("unable to load supabase resource") &&
+      (message.includes("(404)") || message.includes("(406)")));
+
+  return referencesLegacyResource && describesMissingResource;
 }
 
 /**
