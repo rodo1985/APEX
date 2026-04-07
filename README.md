@@ -113,6 +113,46 @@ npm install
 npm run dev
 ```
 
+## Vercel Deployment
+
+APEX is intended to run as two separate Vercel projects in the same monorepo:
+
+- `frontend/` -> `apex-web`
+- `backend/` -> `apex-api`
+
+The frontend is a Vite SPA, so Vercel needs a rewrite that sends all non-file routes to `index.html`. The backend is a native FastAPI app with [backend/index.py](backend/index.py) exposing the existing FastAPI instance Vercel looks for.
+
+Recommended deployment flow:
+
+```bash
+# Link each folder to its own Vercel project
+cd frontend
+vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-web
+
+cd ../backend
+vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-api
+
+# Apply the production schema and seed reference foods before first traffic
+APEX_DATABASE_URL="postgresql+psycopg://..." uv run alembic upgrade head
+APEX_DATABASE_URL="postgresql+psycopg://..." uv run python -m app.bootstrap --seed-foods
+
+# Then deploy each project separately from its own folder
+cd ../frontend && vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
+cd ../backend && vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
+```
+
+Production environment variables:
+
+- Frontend: `VITE_API_URL=https://<apex-api-domain>/v1`
+- Backend: `APEX_DATABASE_URL` points to Supabase Postgres, plus `APEX_ALLOWED_ORIGINS`, `APEX_FRONTEND_URL`, and provider credentials
+
+Important Vercel notes:
+
+- Production should use Postgres, not the local SQLite default.
+- Runtime schema creation is only enabled for local SQLite development; production schema should be applied with Alembic.
+- The backend normalizes `postgres://` and `postgresql://` URLs to `postgresql+psycopg://...`, so Supabase-style URLs work cleanly with SQLAlchemy.
+- Reference foods should be loaded explicitly with `uv run python -m app.bootstrap --seed-foods` after migrations.
+- Preview deployments are deferred until production is stable.
 ## Configuration
 
 ### Backend environment
@@ -123,7 +163,7 @@ Important values:
 
 - `APEX_DATABASE_URL`
   Local development defaults to SQLite (`sqlite:///./apex.db`).
-  Production intent remains Postgres as the system of record.
+  Production uses Supabase Postgres as the system of record.
 - `APEX_ALLOWED_ORIGINS`
   Comma-separated CORS origins for the frontend.
   The local defaults include both `http://localhost:5173` and `http://127.0.0.1:5173`.
@@ -143,6 +183,9 @@ Notes:
 - If Strava credentials are missing, APEX falls back to the deterministic mock provider.
 - If Anthropic/OpenAI keys are missing, coach, voice, and photo flows still work through deterministic local fallbacks.
 - Keep the Supabase service-role key server-side only.
+- Postgres URLs from hosted providers can be supplied as `postgres://...` or `postgresql://...`; the backend normalizes them to the `psycopg` SQLAlchemy dialect automatically.
+- Keep the Supabase service-role key server-side only.
+- Postgres URLs from hosted providers can be supplied as `postgres://...` or `postgresql://...`; the backend normalizes them to the `psycopg` SQLAlchemy dialect automatically.
 
 ### Frontend environment
 
@@ -200,6 +243,8 @@ Prototype note:
   Build summary, deferred scope, and local workflow notes for this MVP scaffold.
 - [docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md](docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md)
   Parallel implementation plan for the Supabase-backed dashboard and food-log prototype.
+- [docs/deployment/VERCEL_DEPLOYMENT.md](docs/deployment/VERCEL_DEPLOYMENT.md)
+  Step-by-step production deployment checklist for `apex-web` and `apex-api`.
 
 ## Development Notes
 
@@ -208,3 +253,5 @@ Prototype note:
 - Use the `docs/design` preview app when iterating on standalone JSX mockups before promoting a design into `frontend`.
 - Keep the README and `docs/implementation` notes updated whenever routes, setup, configuration, or workflow changes.
 - The backend currently uses SQLite for zero-friction local development, but the schema and service layout are intended to transfer cleanly to Postgres.
+- Vercel production deployment should use the FastAPI backend in `backend/index.py` and the Vite SPA rewrite in `frontend/vercel.json`.
+- Before first production traffic, run Alembic against Supabase and then seed reference foods with `uv run python -m app.bootstrap --seed-foods`.

@@ -95,3 +95,16 @@ cd frontend
 npm test
 npm run build
 ```
+
+## Vercel Preparation
+
+The repo is now prepared for a native Vercel deployment without Docker:
+
+- `frontend/vercel.json` provides the SPA rewrite required for Vite deep links.
+- `backend/index.py` exposes the FastAPI app at a Vercel-compatible entrypoint.
+- Runtime `create_all()` and implicit food seeding only run for local SQLite development.
+- Production rollout should run:
+  1. `uv run alembic upgrade head`
+  2. `uv run python -m app.bootstrap --seed-foods`
+  3. `vercel deploy --prod -y` in `backend/`
+  4. `vercel deploy --prod -y` in `frontend/`

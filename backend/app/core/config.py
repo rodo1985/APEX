@@ -2,7 +2,7 @@
 
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -48,6 +48,34 @@ class Settings(BaseSettings):
     strava_client_id: str = ""
     strava_client_secret: str = ""
     strava_redirect_uri: str = "http://localhost:8000/v1/auth/strava/callback"
+
+    @field_validator("database_url", mode="before")
+    @classmethod
+    def normalize_database_url(cls, value: object) -> object:
+        """Normalize Postgres URLs to SQLAlchemy's psycopg driver format.
+
+        Parameters:
+            value: The raw database URL supplied through environment or init.
+
+        Returns:
+            object: The normalized database URL, or the original value when it
+                is already valid or non-string.
+
+        Raises:
+            None.
+
+        Example:
+            >>> Settings.normalize_database_url("postgresql://user:pass@db/apex")
+            'postgresql+psycopg://user:pass@db/apex'
+        """
+
+        if not isinstance(value, str):
+            return value
+        if value.startswith("postgres://"):
+            return value.replace("postgres://", "postgresql+psycopg://", 1)
+        if value.startswith("postgresql://") and not value.startswith("postgresql+"):
+            return value.replace("postgresql://", "postgresql+psycopg://", 1)
+        return value
 
     @property
     def cors_origins(self) -> list[str]:

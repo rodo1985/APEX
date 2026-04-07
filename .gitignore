@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -211,6 +211,7 @@ frontend/node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/apex.db
+.vercel/
 
 # Design preview workspace
 docs/design/node_modules/

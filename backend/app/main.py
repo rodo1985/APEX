@@ -9,12 +9,11 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 
 from app.api import router
+from app.bootstrap import bootstrap_local_runtime, should_bootstrap_runtime
 from app.core.config import get_settings
-from app.core.database import Base, engine
-from app.services.nutrition import seed_food_items
+from app.core.database import engine
 
 settings = get_settings()
 
@@ -37,9 +36,10 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
         True
     """
 
-    Base.metadata.create_all(bind=engine)
-    with Session(bind=engine) as session:
-        seed_food_items(session)
+    if should_bootstrap_runtime(settings.database_url):
+        # Keep the zero-friction local developer experience, but avoid runtime
+        # schema creation and implicit seeding in production deployments.
+        bootstrap_local_runtime(engine)
     yield
 
 
