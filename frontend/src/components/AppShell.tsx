@@ -24,7 +24,7 @@ export function AppShell() {
   const greeting = getGreeting();
   const showCoachRail = !location.pathname.startsWith("/app/coach");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [coachRailOpen, setCoachRailOpen] = useState(true);
+  const [coachRailOpen, setCoachRailOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -36,8 +36,8 @@ export function AppShell() {
     if (storedSidebarPreference === "true") {
       setSidebarCollapsed(true);
     }
-    if (storedPreference === "false") {
-      setCoachRailOpen(false);
+    if (storedPreference === "true") {
+      setCoachRailOpen(true);
     }
   }, []);
 

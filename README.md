@@ -18,7 +18,7 @@ There is also an in-progress Supabase-backed nutrition prototype in [docs/design
 - Strava connection flow with 90-day onboarding import, manual sync, and training load metrics.
 - Persisted coach conversations grounded in profile, nutrition, and training context.
 - Optional Supabase prototype path for a richer dashboard and direct historical food-log reads.
-- Interactive dashboard drilldowns including a metric-switched seven-day trend and expandable meal-slot details.
+- Interactive dashboard drilldowns including a metric-switched seven-day trend, expandable meal-slot details, and a viewport-sized APEX loading state with heartbeat motion while historical days are fetched.
 - Generated backend OpenAPI document at [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json).
 - Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
 
@@ -154,6 +154,7 @@ Prototype note:
 
 - The intended split is FastAPI for auth, coach, uploads, and existing MVP flows, with Supabase used as a read model for the richer nutrition dashboard and historical daily log until both paths are unified.
 - The current prototype is read-only on the frontend: `/app/today` and `/app/log` read the selected day directly from Supabase when the frontend Supabase env vars are present.
+- The dashboard now derives consumed, exercise, and net calories from raw meal and activity rows in the frontend adapter, instead of trusting the optional `daily_totals` aggregate view. This avoids double-counting when the prototype SQL view joins food items and activities in the same grouped query.
 - The manual, voice, and photo meal composer remains the FastAPI-backed MVP path when the Supabase prototype is not enabled.
 
 ### Testing the Supabase Prototype
@@ -161,7 +162,7 @@ Prototype note:
 1. Populate `frontend/.env` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_SUPABASE_USER_ID`.
 2. Start the frontend with `npm run dev`.
 3. Sign in to APEX and finish onboarding if needed.
-4. Open `/app/today` to verify the dashboard reads the selected day from Supabase and supports date navigation.
+4. Open `/app/today` to verify the dashboard reads the selected day from Supabase, supports date navigation, and shows the branded APEX loading state while the next day is loading.
 5. In `/app/today`, click the seven-day bars to inspect each day and use the metric switch to move between calories, exercise, and training load.
 6. In `/app/today`, open the meal-slot rows to inspect the logged food detail inline.
 7. Open `/app/log` to verify the historical food-log view, six meal slots, and any linked daily activities from Supabase.

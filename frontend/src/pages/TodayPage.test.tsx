@@ -257,4 +257,39 @@ describe("TodayPage", () => {
     expect(await screen.findByText("Overnight oats")).toBeInTheDocument();
     expect(screen.getByText(/120g · personal_db/i)).toBeInTheDocument();
   });
+
+  it("shows the branded APEX loading state while the selected day is still loading", async () => {
+    mockedUseSession.mockReturnValue({
+      api: {
+        getNutritionToday: vi.fn().mockResolvedValue({}),
+        getNutritionWeekly: vi.fn().mockResolvedValue({ days: [] }),
+        getTrainingToday: vi.fn().mockResolvedValue({
+          date: "2026-04-07",
+          metrics: { ctl: 58, atl: 61, tsb: -3, daily_tss: 48 },
+          status: "optimal",
+          planned_activities: [],
+          completed_activities: [],
+        }),
+        getTrainingLoad: vi.fn().mockResolvedValue({ series: [] }),
+      },
+    });
+    mockedGetPrototypeDashboardDay.mockImplementation(
+      () =>
+        new Promise(() => {
+          // Keep the request pending so the dashboard stays in its loading state.
+        }),
+    );
+    mockedGetPrototypeWeekRollup.mockImplementation(
+      () =>
+        new Promise(() => {
+          // Keep the request pending so the dashboard stays in its loading state.
+        }),
+    );
+
+    render(<TodayPage />);
+
+    expect(document.querySelector(".dashboard-loader .apex-wordmark")?.textContent).toBe("APEX");
+    expect(screen.getByText("Loading dashboard data")).toBeInTheDocument();
+    expect(screen.getByText("Syncing nutrition, activity, and target context.")).toBeInTheDocument();
+  });
 });

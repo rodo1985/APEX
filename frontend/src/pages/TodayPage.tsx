@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
-import { Icon } from "../components/Brand";
+import { ApexIcon, ApexWordmark, Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
 import {
   formatDateLabel,
@@ -326,8 +327,12 @@ export function TodayPage() {
     return <div className="error-banner">{error}</div>;
   }
 
-  if ((selectedDate === todayDate && !activeDashboard) || prototypeLoading) {
-    return <div className="workspace-empty">Loading the dashboard...</div>;
+  if ((selectedDate === todayDate && !activeDashboard) || (prototypeLoading && !activeDashboard)) {
+    return (
+      <div className="dashboard-loader-shell">
+        <DashboardLoadingState label="Loading dashboard data" fullscreen />
+      </div>
+    );
   }
 
   if (!activeDashboard) {
@@ -367,6 +372,8 @@ export function TodayPage() {
 
   return (
     <div className="workspace-section">
+      {prototypeLoading ? <DashboardLoadingState label={`Loading ${formatRelativeDayLabel(selectedDate)}`} /> : null}
+
       <div className="workspace-page-header compact">
         <div>
           <span>{formatRelativeDayLabel(selectedDate)}</span>
@@ -417,6 +424,7 @@ export function TodayPage() {
                 value={activeDashboard.totals.kcal}
                 target={activeDashboard.targets.kcal}
                 color="var(--workspace-teal)"
+                tone="kcal"
               />
               <MetricRing
                 label="Protein"
@@ -424,13 +432,15 @@ export function TodayPage() {
                 value={activeDashboard.totals.protein}
                 target={activeDashboard.targets.protein}
                 color="var(--workspace-blue)"
+                tone="protein"
               />
               <MetricRing
                 label="Carbs"
                 unit="g"
                 value={activeDashboard.totals.carbs}
                 target={activeDashboard.targets.carbs}
-                color="var(--workspace-teal)"
+                color="var(--workspace-lime)"
+                tone="carbs"
               />
               <MetricRing
                 label="Fat"
@@ -438,6 +448,7 @@ export function TodayPage() {
                 value={activeDashboard.totals.fat}
                 target={activeDashboard.targets.fat}
                 color="var(--workspace-orange)"
+                tone="fat"
               />
             </div>
 
@@ -621,10 +632,10 @@ export function TodayPage() {
                             </span>
                           </div>
                           <div className="dashboard-food-metrics">
-                            <span>{Math.round(item.kcal)} kcal</span>
-                            <span>{Math.round(item.protein)}P</span>
-                            <span>{Math.round(item.carbs)}C</span>
-                            <span>{Math.round(item.fat)}F</span>
+                            <span className="metric-kcal">{Math.round(item.kcal)} kcal</span>
+                            <span className="metric-protein">{Math.round(item.protein)}P</span>
+                            <span className="metric-carbs">{Math.round(item.carbs)}C</span>
+                            <span className="metric-fat">{Math.round(item.fat)}F</span>
                           </div>
                         </div>
                       ))}
@@ -678,18 +689,78 @@ export function TodayPage() {
   );
 }
 
+/**
+ * Renders the branded loading state used while the dashboard switches days.
+ *
+ * Parameters:
+ * - label: The status text shown below the APEX logo.
+ * - fullscreen: Whether the loader should take over the full dashboard area.
+ *
+ * Returns:
+ * - A branded loading panel inspired by the v9 splash treatment.
+ *
+ * Raised errors:
+ * - None.
+ *
+ * Example:
+ * ```tsx
+ * <DashboardLoadingState label="Loading dashboard data" fullscreen />
+ * ```
+ */
+function DashboardLoadingState({
+  label,
+  fullscreen = false,
+}: {
+  label: string;
+  fullscreen?: boolean;
+}) {
+  const loader = (
+    <div
+      aria-live="polite"
+      className={`dashboard-loader${fullscreen ? " fullscreen" : " overlay"} viewport`}
+    >
+      <div className="dashboard-loader-glow" />
+      <div className="dashboard-loader-content">
+        <div className="dashboard-loader-brand">
+          <div className="dashboard-loader-heartbeat">
+            <ApexIcon size={fullscreen ? 92 : 74} />
+          </div>
+          <ApexWordmark size={fullscreen ? 34 : 28} />
+        </div>
+        <div className="dashboard-loader-copy">
+          <strong>{label}</strong>
+          <span>Syncing nutrition, activity, and target context.</span>
+        </div>
+        <div className="dashboard-loader-dots" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
+      </div>
+    </div>
+  );
+
+  if (typeof document === "undefined") {
+    return loader;
+  }
+
+  return createPortal(loader, document.body);
+}
+
 function MetricRing({
   label,
   unit,
   value,
   target,
   color,
+  tone,
 }: {
   label: string;
   unit: string;
   value: number;
   target: number;
   color: string;
+  tone: "kcal" | "protein" | "carbs" | "fat";
 }) {
   const size = 86;
   const strokeWidth = 6;
@@ -722,7 +793,7 @@ function MetricRing({
           strokeLinecap="round"
         />
       </svg>
-      <div className="dashboard-ring-copy">
+      <div className={`dashboard-ring-copy ${tone}`}>
         <strong>{Math.round(value)}</strong>
         <span>{unit}</span>
       </div>

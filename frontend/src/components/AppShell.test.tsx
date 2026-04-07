@@ -63,10 +63,11 @@ describe("AppShell", () => {
     expect(screen.getByLabelText("Collapse sidebar")).toBeInTheDocument();
     expect(screen.getByLabelText("Open settings")).toBeInTheDocument();
     expect(screen.getAllByLabelText("Log out").length).toBeGreaterThan(0);
+    expect(screen.getByLabelText("Show APEX coach")).toBeInTheDocument();
 
     await userEventInstance.click(screen.getByLabelText("Collapse sidebar"));
 
     expect(screen.getByLabelText("Expand sidebar")).toBeInTheDocument();
-    expect(screen.getByLabelText("Hide APEX coach")).toBeInTheDocument();
+    expect(screen.getByLabelText("Show APEX coach")).toBeInTheDocument();
   });
 });
