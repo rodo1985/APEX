@@ -11,12 +11,14 @@ There is also an in-progress Supabase-backed nutrition prototype in [docs/design
 - Landing page plus authenticated product workspace.
 - JWT-based auth with registration, login, refresh, logout, and profile updates.
 - Onboarding flow for athlete metrics, sports, goals, and Strava connection.
-- `Today`, `Food Log`, `Training`, `Coach`, and `Settings` app surfaces.
+- `Dashboard` (`/app/today`), `Food Log`, `Training`, `Coach`, and `Settings` app surfaces.
+- Collapsible desktop workspace chrome with an icon-only left rail and a toggleable right-side APEX coach panel.
 - Nutrition logging by manual entry, voice review, and photo review.
 - Dynamic day-type nutrition targets cached per day.
 - Strava connection flow with 90-day onboarding import, manual sync, and training load metrics.
 - Persisted coach conversations grounded in profile, nutrition, and training context.
-- Optional Supabase prototype path for richer dashboard and historical food-log reads.
+- Optional Supabase prototype path for a richer dashboard and direct historical food-log reads.
+- Interactive dashboard drilldowns including a metric-switched seven-day trend and expandable meal-slot details.
 - Generated backend OpenAPI document at [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json).
 - Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
 
@@ -74,6 +76,14 @@ npm run dev
 The Vite app will be available at `http://localhost:5173`.
 
 If you open the frontend on `http://127.0.0.1:5173`, the app now mirrors that hostname for the default API fallback so local auth and onboarding still work without extra config.
+
+If the frontend Supabase env vars are present, the authenticated `Dashboard` and `Food Log` pages automatically switch into the nutrition prototype read path.
+
+Desktop workspace note:
+
+- Use the top-left sidebar control to collapse the left navigation into an icon rail.
+- Use the top-right panel toggle to open or close the right-side APEX coach panel.
+- Settings and logout remain available from the top bar even when the side panels are collapsed.
 
 ### Common development commands
 
@@ -143,6 +153,19 @@ Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend
 Prototype note:
 
 - The intended split is FastAPI for auth, coach, uploads, and existing MVP flows, with Supabase used as a read model for the richer nutrition dashboard and historical daily log until both paths are unified.
+- The current prototype is read-only on the frontend: `/app/today` and `/app/log` read the selected day directly from Supabase when the frontend Supabase env vars are present.
+- The manual, voice, and photo meal composer remains the FastAPI-backed MVP path when the Supabase prototype is not enabled.
+
+### Testing the Supabase Prototype
+
+1. Populate `frontend/.env` with `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_SUPABASE_USER_ID`.
+2. Start the frontend with `npm run dev`.
+3. Sign in to APEX and finish onboarding if needed.
+4. Open `/app/today` to verify the dashboard reads the selected day from Supabase and supports date navigation.
+5. In `/app/today`, click the seven-day bars to inspect each day and use the metric switch to move between calories, exercise, and training load.
+6. In `/app/today`, open the meal-slot rows to inspect the logged food detail inline.
+7. Open `/app/log` to verify the historical food-log view, six meal slots, and any linked daily activities from Supabase.
+8. Remove the Supabase frontend env vars when you want to return to the original API-backed food composer workflow.
 
 ## Project Structure
 

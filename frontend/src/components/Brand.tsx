@@ -63,6 +63,7 @@ export function Icon({
   size = 18,
 }: {
   name:
+    | "panel"
     | "home"
     | "fork"
     | "bike"
@@ -88,6 +89,8 @@ export function Icon({
     | "key"
     | "link2"
     | "chevron"
+    | "sidebar"
+    | "panel-right"
     | "moon"
     | "run"
     | "info";
@@ -106,6 +109,12 @@ export function Icon({
   };
 
   const icons: Record<string, ReactNode> = {
+    panel: (
+      <>
+        <rect x="3" y="5" width="18" height="14" rx="2" />
+        <path d="M9 5v14" />
+      </>
+    ),
     home: <path d="M3 9.5L12 3l9 6.5V21H3z" />,
     fork: (
       <>
@@ -157,6 +166,18 @@ export function Icon({
     ),
     arrow: <path d="M5 12h14M12 5l7 7-7 7" />,
     chevron: <path d="m9 18 6-6-6-6" />,
+    sidebar: (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M9 4v16" />
+      </>
+    ),
+    "panel-right": (
+      <>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <path d="M15 4v16" />
+      </>
+    ),
     bell: (
       <>
         <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />

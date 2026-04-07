@@ -737,18 +737,42 @@ img {
   border-right: 1px solid var(--workspace-border);
   display: none;
   flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+  transition: width 180ms ease;
+}
+
+.workspace-sidebar.collapsed {
+  width: 88px;
+}
+
+.workspace-sidebar-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0.85rem 0.95rem;
+  border-bottom: 1px solid var(--workspace-border);
 }
 
 .workspace-brand {
   display: flex;
-  padding: 1.75rem 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--workspace-border);
+  padding: 0;
+  min-width: 0;
 }
 
 .workspace-nav {
   display: grid;
   gap: 0.35rem;
   padding: 1rem 0.75rem;
+  align-content: start;
+}
+
+.workspace-sidebar-footer {
+  margin-top: auto;
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--workspace-border);
 }
 
 .workspace-nav-link,
@@ -767,6 +791,25 @@ img {
   padding: 0.8rem 0.95rem;
 }
 
+.workspace-sidebar.collapsed .workspace-nav-link,
+.workspace-sidebar.collapsed .workspace-user-card,
+.workspace-sidebar.collapsed .workspace-logout {
+  justify-content: center;
+  padding-inline: 0.75rem;
+}
+
+.workspace-sidebar.collapsed .workspace-nav-link span,
+.workspace-sidebar.collapsed .workspace-user-copy,
+.workspace-sidebar.collapsed .workspace-logout span,
+.workspace-sidebar.collapsed .apex-wordmark,
+.workspace-sidebar.collapsed .workspace-user-card svg:last-child {
+  display: none;
+}
+
+.workspace-sidebar.collapsed .workspace-brand {
+  justify-content: center;
+}
+
 .workspace-nav-link.active,
 .workspace-mobile-link.active {
   background: var(--workspace-teal-dim);
@@ -774,7 +817,6 @@ img {
 }
 
 .workspace-user-card {
-  margin: auto 0.75rem 0.75rem;
   padding: 0.85rem 0.95rem;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--workspace-border);
@@ -829,9 +871,11 @@ img {
 }
 
 .workspace-logout {
-  margin: 0 0.75rem 1.5rem;
   padding: 0.75rem 0.95rem;
   border: 1px solid transparent;
+  width: 100%;
+  background: transparent;
+  text-align: left;
 }
 
 .workspace-nav-link:hover,
@@ -885,6 +929,7 @@ img {
 .workspace-live-pill,
 .workspace-pill,
 .workspace-linkish,
+.workspace-date-pill,
 .coach-dock-live,
 .training-hero-source {
   display: inline-flex;
@@ -926,11 +971,34 @@ img {
   display: inline-grid;
 }
 
+.workspace-icon-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
 .workspace-page {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 1.25rem 1.25rem 5.8rem;
+}
+
+.workspace-rail-peek {
+  position: sticky;
+  right: 0;
+  top: 1rem;
+  align-self: flex-start;
+  margin-right: 0.9rem;
+  border: 1px solid var(--workspace-border);
+  border-radius: 999px;
+  background: var(--workspace-card);
+  color: var(--workspace-muted);
+  width: 2.65rem;
+  height: 2.65rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.26);
 }
 
 .workspace-section {
@@ -947,6 +1015,24 @@ img {
 
 .workspace-page-header.compact {
   align-items: center;
+}
+
+.workspace-date-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.workspace-date-pill {
+  min-width: 7rem;
+  justify-content: center;
+  color: var(--workspace-text);
+  font-weight: 700;
+}
+
+.workspace-arrow-previous {
+  display: inline-flex;
+  transform: rotate(180deg);
 }
 
 .workspace-page-header h2,
@@ -1035,6 +1121,22 @@ img {
   padding-inline: 0.3rem;
 }
 
+.workspace-rail-toggle-button {
+  display: none;
+}
+
+.workspace-sidebar-toggle,
+.workspace-rail-toggle-button.active,
+.workspace-rail-peek:hover {
+  color: var(--workspace-text);
+}
+
+.workspace-rail-toggle-button.active {
+  border-color: var(--workspace-teal-border);
+  background: var(--workspace-teal-dim);
+  color: var(--workspace-teal);
+}
+
 .workspace-empty {
   border-radius: 1.2rem;
   border: 1px dashed var(--workspace-border);
@@ -1096,6 +1198,235 @@ img {
     radial-gradient(circle at top right, rgba(45, 212, 191, 0.1), transparent 34%),
     var(--workspace-card);
   padding: 1.3rem;
+}
+
+.dashboard-ring-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.dashboard-ring-card {
+  position: relative;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 0.95rem 0.85rem 0.9rem;
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+}
+
+.dashboard-ring-svg {
+  transform: rotate(-90deg);
+}
+
+.dashboard-ring-copy {
+  position: absolute;
+  inset: 1.55rem 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 0.05rem;
+  pointer-events: none;
+}
+
+.dashboard-ring-copy strong {
+  font-size: 1rem;
+  color: var(--workspace-text);
+}
+
+.dashboard-ring-copy span,
+.dashboard-ring-label,
+.dashboard-ring-target,
+.dashboard-composition-legend span {
+  font-size: 0.72rem;
+  color: var(--workspace-muted);
+}
+
+.dashboard-ring-label {
+  margin-top: -0.2rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: var(--workspace-text);
+}
+
+.dashboard-summary-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-bottom: 1rem;
+}
+
+.dashboard-composition-card {
+  border-radius: 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 1rem;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.dashboard-composition-bar {
+  display: flex;
+  width: 100%;
+  height: 0.8rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dashboard-composition-bar .protein {
+  background: linear-gradient(90deg, var(--workspace-blue), rgba(96, 165, 250, 0.5));
+}
+
+.dashboard-composition-bar .carbs {
+  background: linear-gradient(90deg, var(--workspace-teal), rgba(45, 212, 191, 0.5));
+}
+
+.dashboard-composition-bar .fat {
+  background: linear-gradient(90deg, var(--workspace-orange), rgba(251, 146, 60, 0.45));
+}
+
+.dashboard-composition-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.dashboard-trend-switcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem;
+  border-radius: 999px;
+  border: 1px solid var(--workspace-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dashboard-trend-switch {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--workspace-muted);
+  padding: 0.45rem 0.75rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dashboard-trend-switch.active {
+  background: var(--workspace-teal-dim);
+  color: var(--workspace-teal);
+}
+
+.dashboard-meal-stack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.dashboard-meal-card {
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+}
+
+.dashboard-meal-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+.dashboard-meal-row.empty {
+  opacity: 0.72;
+}
+
+.dashboard-meal-row.open {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dashboard-meal-row strong,
+.dashboard-meal-totals strong {
+  display: block;
+  color: var(--workspace-text);
+}
+
+.dashboard-meal-row span,
+.dashboard-meal-totals span {
+  font-size: 0.76rem;
+  color: var(--workspace-muted);
+}
+
+.dashboard-meal-totals {
+  text-align: right;
+}
+
+.dashboard-meal-detail {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dashboard-food-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.dashboard-food-row.alt {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dashboard-food-row strong {
+  display: block;
+  margin-bottom: 0.18rem;
+}
+
+.dashboard-food-row span {
+  font-size: 0.76rem;
+  color: var(--workspace-muted);
+}
+
+.dashboard-food-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.dashboard-trend-detail {
+  margin-top: 0.9rem;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 0.8rem;
+}
+
+.dashboard-trend-detail strong {
+  display: block;
+  color: var(--workspace-text);
+}
+
+.dashboard-trend-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.dashboard-trend-detail-grid > div {
+  border-radius: 0.9rem;
+  background: var(--workspace-card-2);
+  padding: 0.8rem;
+  display: grid;
+  gap: 0.15rem;
 }
 
 .today-card-copy h2 {
@@ -1220,6 +1551,9 @@ img {
   justify-content: end;
   align-items: center;
   gap: 0.45rem;
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 
 .today-chart-bar {
@@ -1227,6 +1561,11 @@ img {
   min-height: 1rem;
   border-radius: 999px 999px 0.4rem 0.4rem;
   background: linear-gradient(180deg, var(--workspace-teal), rgba(45, 212, 191, 0.18));
+}
+
+.today-chart-column.active .today-chart-bar {
+  box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.25);
+  background: linear-gradient(180deg, var(--workspace-teal), rgba(45, 212, 191, 0.4));
 }
 
 .training-load-bar {
@@ -1289,6 +1628,20 @@ img {
 .training-card-stack {
   display: grid;
   gap: 1rem;
+}
+
+.prototype-slot-grid,
+.prototype-activity-grid {
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+}
+
+.prototype-slot-card.empty {
+  border-style: dashed;
+}
+
+.prototype-activity-card {
+  display: grid;
+  gap: 0.9rem;
 }
 
 .meal-category-time {
@@ -1558,6 +1911,10 @@ img {
 }
 
 @media (min-width: 900px) {
+  .dashboard-ring-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .today-grid,
   .composer-grid,
   .settings-shell {
@@ -1585,6 +1942,11 @@ img {
     min-width: 0;
   }
 
+  .workspace-rail-toggle-button,
+  .workspace-rail-peek {
+    display: inline-flex;
+  }
+
   .workspace-page {
     padding: 1.4rem 1.8rem 1.8rem;
   }
@@ -1602,6 +1964,7 @@ img {
 }
 
 @media (max-width: 899px) {
+  .dashboard-ring-grid,
   .today-chip-grid,
   .log-action-grid,
   .settings-form-grid,
@@ -1623,5 +1986,13 @@ img {
   .saved-meal-grid,
   .training-card-stack {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-trend-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-trend-switcher {
+    flex-wrap: wrap;
   }
 }
