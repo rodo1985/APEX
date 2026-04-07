@@ -31,11 +31,6 @@ type TrendMetric = "calories" | "exercise" | "load";
 
 type DashboardViewModel = {
   activities: PrototypeActivity[];
-  composition: {
-    carbsPct: number;
-    fatPct: number;
-    proteinPct: number;
-  };
   confirmed: boolean;
   date: string;
   dayType: string;
@@ -166,9 +161,6 @@ export function TodayPage() {
 
     const dailyCalories = Math.round(nutrition.summary.calories_consumed);
     const exercise = training.completed_activities.reduce((sum, activity) => sum + activity.calories, 0);
-    const macroCalories =
-      nutrition.summary.protein_g * 4 + nutrition.summary.carbs_g * 4 + nutrition.summary.fat_g * 9;
-
     return {
       date: todayDate,
       label: "Today",
@@ -188,11 +180,6 @@ export function TodayPage() {
         exercise,
         net: dailyCalories - exercise,
         remaining: nutrition.summary.calories_target - dailyCalories,
-      },
-      composition: {
-        proteinPct: macroCalories ? Math.round(((nutrition.summary.protein_g * 4) / macroCalories) * 100) : 0,
-        carbsPct: macroCalories ? Math.round(((nutrition.summary.carbs_g * 4) / macroCalories) * 100) : 0,
-        fatPct: macroCalories ? Math.round(((nutrition.summary.fat_g * 9) / macroCalories) * 100) : 0,
       },
       meals: nutrition.meals.map((meal) => ({
         id: meal.log_id,
@@ -233,7 +220,6 @@ export function TodayPage() {
 
     return {
       activities: prototypeDay.activities,
-      composition: prototypeDay.summary.macroProgress,
       confirmed: prototypeDay.summary.confirmed,
       date: prototypeDay.date,
       dayType: prototypeDay.summary.dayType,
@@ -369,6 +355,7 @@ export function TodayPage() {
   const expectedCalories = effectiveTargets.kcal;
   const expectedRemaining = Math.round(expectedCalories - activeDashboard.totals.kcal);
   const remainingLabel = expectedRemaining < 0 ? "Surplus" : "Remaining";
+  const macroComposition = calculateMacroCompositionPercentages(effectiveTargets);
   const primaryHero = resolveHeroContent(selectedActivity, completed, planned, activeDashboard.dayType);
   const selectedTrendPoint =
     activeWeek.find((point) => point.date === selectedTrendDate) ?? activeWeek[activeWeek.length - 1] ?? null;
@@ -478,24 +465,17 @@ export function TodayPage() {
               <div className="workspace-section-heading">
                 <div>
                   <span>Macro composition</span>
-                  <h3>Energy split</h3>
+                  <h3>Expected split</h3>
                 </div>
                 <div className="workspace-pill">{activeDashboard.confirmed ? "Confirmed" : "Draft"}</div>
               </div>
 
-              <div className="dashboard-composition-bar">
-                <div
-                  className="protein"
-                  style={{ width: `${activeDashboard.composition.proteinPct}%` }}
-                />
-                <div className="carbs" style={{ width: `${activeDashboard.composition.carbsPct}%` }} />
-                <div className="fat" style={{ width: `${activeDashboard.composition.fatPct}%` }} />
-              </div>
+              <MacroCompositionDonut composition={macroComposition} />
 
               <div className="dashboard-composition-legend">
-                <span>P {activeDashboard.composition.proteinPct}%</span>
-                <span>C {activeDashboard.composition.carbsPct}%</span>
-                <span>F {activeDashboard.composition.fatPct}%</span>
+                <span>P {macroComposition.proteinPct}%</span>
+                <span>C {macroComposition.carbsPct}%</span>
+                <span>F {macroComposition.fatPct}%</span>
               </div>
             </div>
           </section>
@@ -862,6 +842,139 @@ function getTrendMetricUnit(metric: TrendMetric) {
   }
 
   return "kcal";
+}
+
+/**
+ * Renders a donut chart for the protein/carbs/fat composition split.
+ *
+ * Parameters:
+ * - composition: The percentage split to visualize.
+ *
+ * Returns:
+ * - A circular SVG chart with a centered label and colored segments.
+ *
+ * Raised errors:
+ * - None.
+ *
+ * Example:
+ * ```tsx
+ * <MacroCompositionDonut composition={{ proteinPct: 27, carbsPct: 47, fatPct: 26 }} />
+ * ```
+ */
+function MacroCompositionDonut({
+  composition,
+}: {
+  composition: {
+    carbsPct: number;
+    fatPct: number;
+    proteinPct: number;
+  };
+}) {
+  const radius = 44;
+  const circumference = 2 * Math.PI * radius;
+  const segments = [
+    { color: "var(--workspace-blue)", label: "Protein", value: composition.proteinPct },
+    { color: "var(--workspace-lime)", label: "Carbs", value: composition.carbsPct },
+    { color: "var(--workspace-orange)", label: "Fat", value: composition.fatPct },
+  ];
+  let offset = 0;
+
+  return (
+    <div className="dashboard-composition-donut" aria-label="Macro composition chart">
+      <svg viewBox="0 0 120 120" role="img" aria-label="Macro composition donut">
+        <circle className="dashboard-composition-track" cx="60" cy="60" r={radius} />
+        {segments.map((segment) => {
+          const dash = (segment.value / 100) * circumference;
+          const strokeDasharray = `${dash} ${Math.max(circumference - dash, 0)}`;
+          const strokeDashoffset = -offset;
+          offset += dash;
+
+          return (
+            <circle
+              key={segment.label}
+              cx="60"
+              cy="60"
+              r={radius}
+              fill="none"
+              stroke={segment.color}
+              strokeDasharray={strokeDasharray}
+              strokeDashoffset={strokeDashoffset}
+              strokeLinecap="round"
+              strokeWidth="10"
+              transform="rotate(-90 60 60)"
+            />
+          );
+        })}
+      </svg>
+      <div className="dashboard-composition-center">
+        <strong>{composition.carbsPct}%</strong>
+        <span>carbs</span>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Converts macro gram targets into protein/carbs/fat calorie-share percentages.
+ *
+ * Parameters:
+ * - targets: The expected macro targets for the selected day.
+ *
+ * Returns:
+ * - Percentage values that sum to `100` whenever target calories are available.
+ *
+ * Raised errors:
+ * - None.
+ *
+ * Example:
+ * ```ts
+ * const composition = calculateMacroCompositionPercentages({ kcal: 2780, protein: 189, carbs: 324, fat: 81 });
+ * ```
+ */
+function calculateMacroCompositionPercentages(targets: {
+  carbs: number;
+  fat: number;
+  kcal: number;
+  protein: number;
+}) {
+  const calorieShares = [
+    { key: "proteinPct" as const, value: Math.max(targets.protein, 0) * 4 },
+    { key: "carbsPct" as const, value: Math.max(targets.carbs, 0) * 4 },
+    { key: "fatPct" as const, value: Math.max(targets.fat, 0) * 9 },
+  ];
+  const totalMacroCalories = calorieShares.reduce((sum, entry) => sum + entry.value, 0);
+
+  if (totalMacroCalories <= 0) {
+    return {
+      carbsPct: 0,
+      fatPct: 0,
+      proteinPct: 0,
+    };
+  }
+
+  const percentages = calorieShares.map((entry) => ({
+    key: entry.key,
+    raw: (entry.value * 100) / totalMacroCalories,
+    rounded: Math.floor((entry.value * 100) / totalMacroCalories),
+  }));
+  const roundedTotal = percentages.reduce((sum, entry) => sum + entry.rounded, 0);
+  const remainder = 100 - roundedTotal;
+
+  // Distribute the leftover points to the largest fractional parts so the UI
+  // always lands on a stable 100% total after rounding.
+  percentages
+    .sort((left, right) => (right.raw - right.rounded) - (left.raw - left.rounded))
+    .forEach((entry, index) => {
+      if (index < remainder) {
+        entry.rounded += 1;
+      }
+    });
+
+  return {
+    proteinPct: percentages.find((entry) => entry.key === "proteinPct")?.rounded ?? 0,
+    carbsPct: percentages.find((entry) => entry.key === "carbsPct")?.rounded ?? 0,
+    fatPct: percentages.find((entry) => entry.key === "fatPct")?.rounded ?? 0,
+  };
 }
 
 /**

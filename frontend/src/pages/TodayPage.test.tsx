@@ -151,6 +151,87 @@ describe("TodayPage", () => {
     expect(screen.getByText("Expected")).toBeInTheDocument();
   });
 
+  it("shows macro composition percentages from the expected macro targets", async () => {
+    mockedUseSession.mockReturnValue({
+      api: {
+        getNutritionToday: vi.fn().mockResolvedValue({}),
+        getNutritionWeekly: vi.fn().mockResolvedValue({ days: [] }),
+        getTrainingToday: vi.fn().mockResolvedValue({
+          date: "2026-04-07",
+          metrics: { ctl: 58, atl: 61, tsb: -3, daily_tss: 48 },
+          status: "optimal",
+          planned_activities: [],
+          completed_activities: [],
+        }),
+        getTrainingLoad: vi.fn().mockResolvedValue({ series: [] }),
+      },
+    });
+    mockedGetPrototypeDashboardDay.mockResolvedValue({
+      activities: [],
+      dailyLogId: "daily-1",
+      date: "2026-04-07",
+      hasLog: true,
+      meals: [],
+      profile: {
+        activityMultiplier: 1.2,
+        bmr: 1650,
+        dailyDeficit: 550,
+        targets: { carbs: 240, fat: 60, kcal: 2100, protein: 140 },
+        targetWeightKg: 64,
+        userId: "sergio",
+        weeklyLossKg: 0.5,
+        weightKg: 68.5,
+      },
+      summary: {
+        actual: { carbs: 182, fat: 48, kcal: 1680, protein: 138 },
+        confirmed: false,
+        dayType: "moderate",
+        exerciseCalories: 680,
+        hasActivity: true,
+        hasFood: true,
+        macroProgress: { carbsPct: 44, fatPct: 24, proteinPct: 32 },
+        netCalories: 1000,
+        remainingCalories: 420,
+        targets: { carbs: 240, fat: 60, kcal: 2100, protein: 140 },
+      },
+      userId: "sergio",
+    });
+    mockedGetPrototypeWeekRollup.mockResolvedValue({
+      averageCalories: 1680,
+      days: [
+        {
+          actual: { carbs: 182, fat: 48, kcal: 1680, protein: 138 },
+          confirmed: false,
+          date: "2026-04-07",
+          dayType: "moderate",
+          exerciseCalories: 680,
+          hasActivity: true,
+          hasFood: true,
+          hasLog: true,
+          netCalories: 1000,
+          remainingCalories: 420,
+          targets: { carbs: 240, fat: 60, kcal: 2100, protein: 140 },
+        },
+      ],
+      endDate: "2026-04-07",
+      startDate: "2026-04-07",
+      totals: {
+        actual: { carbs: 182, fat: 48, kcal: 1680, protein: 138 },
+        exerciseCalories: 680,
+        netCalories: 1000,
+      },
+      userId: "sergio",
+    });
+
+    render(<TodayPage />);
+
+    expect(await screen.findByRole("heading", { name: "Expected split" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Macro composition donut")).toBeInTheDocument();
+    expect(screen.getByText("P 27%")).toBeInTheDocument();
+    expect(screen.getByText("C 47%")).toBeInTheDocument();
+    expect(screen.getByText("F 26%")).toBeInTheDocument();
+  });
+
   it("expands a meal slot to reveal the logged food detail", async () => {
     const user = userEvent.setup();
     mockedUseSession.mockReturnValue({
