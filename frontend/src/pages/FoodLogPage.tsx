@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
-import { formatDateLabel } from "../lib/format";
+import { formatDateLabel, formatRelativeDayLabel, shiftIsoDate, toIsoDate } from "../lib/format";
+import { getPrototypeFoodLogDay, type PrototypeFoodLogDay } from "../lib/prototypeNutrition";
+import { isPrototypeSupabaseConfigured } from "../lib/prototypeSupabaseRest";
 import { recordAudioOnce } from "../lib/voice";
 import type { FoodSearchResult, Ingredient, MealLog, MealType } from "../lib/types";
 
@@ -52,6 +54,8 @@ type ComposerMode = "manual" | "voice" | "photo" | null;
 export function FoodLogPage() {
   const { api } = useSession();
   const [meals, setMeals] = useState<MealLog[]>([]);
+  const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
+  const [prototypeDay, setPrototypeDay] = useState<PrototypeFoodLogDay | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -65,12 +69,27 @@ export function FoodLogPage() {
   const [recording, setRecording] = useState(false);
   const [parsing, setParsing] = useState(false);
 
-  async function loadMeals() {
+  const todayDate = toIsoDate(new Date());
+  const prototypeEnabled = isPrototypeSupabaseConfigured();
+  const isViewingToday = selectedDate === todayDate;
+  const canNextDay = selectedDate < todayDate;
+  const isPrototypeHistoryMode = prototypeEnabled && !isViewingToday;
+  const prototypeSummary = prototypeDay?.summary ?? null;
+
+  async function loadMeals(date: string) {
     setLoading(true);
+    setError(null);
 
     try {
-      const today = new Date().toISOString().slice(0, 10);
-      const response = await api.getNutritionLog(today, today);
+      if (prototypeEnabled && date !== todayDate) {
+        const day = await getPrototypeFoodLogDay(date);
+        setPrototypeDay(day);
+        setMeals([]);
+        return;
+      }
+
+      setPrototypeDay(null);
+      const response = await api.getNutritionLog(date, date);
       setMeals(response.logs);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to load the meal log.");
@@ -80,8 +99,8 @@ export function FoodLogPage() {
   }
 
   useEffect(() => {
-    void loadMeals();
-  }, []);
+    void loadMeals(selectedDate);
+  }, [api, prototypeEnabled, selectedDate]);
 
   useEffect(() => {
     if (!foodQuery.trim()) {
@@ -111,7 +130,21 @@ export function FoodLogPage() {
     );
   }, [draft.ingredients]);
 
-  const totalLoggedCalories = meals.reduce((sum, meal) => sum + meal.total_calories, 0);
+  const totalLoggedCalories = prototypeSummary
+    ? prototypeSummary.actual.kcal
+    : meals.reduce((sum, meal) => sum + meal.total_calories, 0);
+
+  function goToPreviousDay() {
+    setSelectedDate((current) => shiftIsoDate(current, -1));
+  }
+
+  function goToNextDay() {
+    if (!canNextDay) {
+      return;
+    }
+
+    setSelectedDate((current) => shiftIsoDate(current, 1));
+  }
 
   function resetComposer(nextMode: ComposerMode = null, mealType?: MealType) {
     setComposerMode(nextMode);
@@ -196,7 +229,7 @@ export function FoodLogPage() {
       }
 
       resetComposer(null);
-      await loadMeals();
+      await loadMeals(selectedDate);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to save the meal log.");
     } finally {
@@ -228,7 +261,7 @@ export function FoodLogPage() {
 
     try {
       await api.deleteMealLog(mealId);
-      await loadMeals();
+      await loadMeals(selectedDate);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to delete the meal log.");
     }
@@ -305,63 +338,125 @@ export function FoodLogPage() {
     <div className="workspace-section">
       <div className="workspace-page-header compact">
         <div>
-          <span>Saturday, 21 March</span>
+          <span>{formatRelativeDayLabel(selectedDate)}</span>
           <h2>Food Log</h2>
-          <p>{Math.round(totalLoggedCalories)} cal logged today</p>
+          <p>
+            {prototypeSummary
+              ? `${Math.round(totalLoggedCalories)} cal logged / ${Math.round(prototypeSummary.targets.kcal)} cal target`
+              : `${Math.round(totalLoggedCalories)} cal logged for ${isViewingToday ? "today" : "this day"}`}
+          </p>
+        </div>
+        <div className="workspace-date-nav" aria-label="Food log date navigation">
+          <button className="workspace-icon-button" type="button" onClick={goToPreviousDay} aria-label="Previous day">
+            <span className="workspace-arrow-previous">
+              <Icon name="arrow" size={16} />
+            </span>
+          </button>
+          <div className="workspace-date-pill">{formatRelativeDayLabel(selectedDate)}</div>
+          <button
+            className="workspace-icon-button"
+            type="button"
+            onClick={goToNextDay}
+            aria-label="Next day"
+            disabled={!canNextDay}
+          >
+            <Icon name="arrow" size={16} />
+          </button>
         </div>
       </div>
 
       {error ? <div className="error-banner">{error}</div> : null}
 
-      <section className="log-action-grid">
-        <button className="log-action-card primary" type="button" onClick={() => setComposerMode("manual")}>
-          <Icon name="plus" size={22} />
-          <strong>Manual meal</strong>
-          <span>Build and review the meal card by card.</span>
-        </button>
-        <button className="log-action-card" type="button" onClick={() => setComposerMode("voice")}>
-          <Icon name="mic" size={22} />
-          <strong>Voice meal</strong>
-          <span>Push-to-talk, then confirm the parsed ingredients.</span>
-        </button>
-        <button className="log-action-card" type="button" onClick={() => setComposerMode("photo")}>
-          <Icon name="camera" size={22} />
-          <strong>Photo meal</strong>
-          <span>Upload a meal shot and approve the draft before save.</span>
-        </button>
-      </section>
-
-      <section className="meal-category-grid">
-        {(Object.keys(mealCategoryMeta) as MealType[]).map((mealType) => {
-          const meta = mealCategoryMeta[mealType];
-          const categoryMeals = meals.filter((meal) => meal.meal_type === mealType);
-          const categoryCalories = categoryMeals.reduce((sum, meal) => sum + meal.total_calories, 0);
-
-          return (
-            <button
-              key={mealType}
-              type="button"
-              className="meal-category-card"
-              onClick={() => resetComposer("manual", mealType)}
-              style={{ backgroundImage: meta.image }}
-            >
-              <div className="training-hero-overlay" />
-              <div className="meal-category-content">
-                <div className="meal-category-time">{meta.time}</div>
-                <h3>{meta.label}</h3>
-                <div className="training-pill-row">
-                  <span className="training-pill accent" style={{ color: meta.accent }}>
-                    {categoryMeals.length} meals
-                  </span>
-                  <span className="training-pill">{Math.round(categoryCalories)} cal</span>
-                </div>
+      {isPrototypeHistoryMode ? (
+        <section className="workspace-card">
+          <div className="workspace-section-heading">
+            <div>
+              <span>Supabase prototype</span>
+              <h3>Read-only nutrition timeline</h3>
+            </div>
+            <div className="workspace-pill">Direct read</div>
+          </div>
+          <p className="workspace-support-copy">
+            This view is reading the selected day directly from Supabase so you can prototype the richer dashboard and
+            historical nutrition history without mixing it with the current FastAPI meal-draft flow.
+          </p>
+          {prototypeSummary ? (
+            <div className="today-calorie-mini-grid dashboard-summary-grid">
+              <div>
+                <strong>{Math.round(prototypeSummary.targets.kcal)}</strong>
+                <span>Target</span>
               </div>
+              <div className={prototypeSummary.remainingCalories >= 0 ? "accent" : ""}>
+                <strong>{Math.abs(Math.round(prototypeSummary.remainingCalories))}</strong>
+                <span>{prototypeSummary.remainingCalories >= 0 ? "Remaining" : "Surplus"}</span>
+              </div>
+              <div>
+                <strong>{Math.round(prototypeSummary.netCalories)}</strong>
+                <span>Net</span>
+              </div>
+              <div>
+                <strong>{Math.round(prototypeSummary.exerciseCalories)}</strong>
+                <span>Exercise</span>
+              </div>
+            </div>
+          ) : null}
+        </section>
+      ) : (
+        <>
+          <section className="log-action-grid">
+            <button className="log-action-card primary" type="button" onClick={() => setComposerMode("manual")}>
+              <Icon name="plus" size={22} />
+              <strong>Manual meal</strong>
+              <span>Build and review the meal card by card.</span>
             </button>
-          );
-        })}
-      </section>
+            <button className="log-action-card" type="button" onClick={() => setComposerMode("voice")}>
+              <Icon name="mic" size={22} />
+              <strong>Voice meal</strong>
+              <span>Push-to-talk, then confirm the parsed ingredients.</span>
+            </button>
+            <button className="log-action-card" type="button" onClick={() => setComposerMode("photo")}>
+              <Icon name="camera" size={22} />
+              <strong>Photo meal</strong>
+              <span>Upload a meal shot and approve the draft before save.</span>
+            </button>
+          </section>
 
-      {composerMode ? (
+          <section className="meal-category-grid">
+            {(Object.keys(mealCategoryMeta) as MealType[]).map((mealType) => {
+              const meta = mealCategoryMeta[mealType];
+              const categoryMeals = meals.filter((meal) => meal.meal_type === mealType);
+              const categoryCalories = categoryMeals.reduce((sum, meal) => sum + meal.total_calories, 0);
+
+              return (
+                <button
+                  key={mealType}
+                  type="button"
+                  className="meal-category-card"
+                  onClick={() => {
+                    setSelectedDate(todayDate);
+                    resetComposer("manual", mealType);
+                  }}
+                  style={{ backgroundImage: meta.image }}
+                >
+                  <div className="training-hero-overlay" />
+                  <div className="meal-category-content">
+                    <div className="meal-category-time">{meta.time}</div>
+                    <h3>{meta.label}</h3>
+                    <div className="training-pill-row">
+                      <span className="training-pill accent" style={{ color: meta.accent }}>
+                        {categoryMeals.length} meals
+                      </span>
+                      <span className="training-pill">{Math.round(categoryCalories)} cal</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </section>
+        </>
+      )}
+
+      {!isPrototypeHistoryMode && composerMode ? (
         <section className="workspace-card meal-composer-card">
           <div className="settings-page-heading">
             <div>
@@ -561,15 +656,65 @@ export function FoodLogPage() {
       <section className="workspace-card">
         <div className="workspace-section-heading">
           <div>
-            <span>Today&apos;s meals</span>
-            <h3>Saved nutrition logs</h3>
+            <span>{isPrototypeHistoryMode ? "Selected day" : "Today&apos;s meals"}</span>
+            <h3>{isPrototypeHistoryMode ? "Supabase meal slots" : "Saved nutrition logs"}</h3>
           </div>
         </div>
 
         {loading ? (
           <div className="workspace-empty">Loading meals...</div>
+        ) : isPrototypeHistoryMode ? (
+          prototypeDay && prototypeDay.meals.some((meal) => !meal.isEmpty) ? (
+            <div className="saved-meal-grid prototype-slot-grid">
+              {prototypeDay.meals.map((meal) => (
+                <article key={meal.id} className={`saved-meal-card prototype-slot-card${meal.isEmpty ? " empty" : ""}`}>
+                  <div className="food-search-row">
+                    <div>
+                      <strong>
+                        {meal.icon} {meal.name}
+                      </strong>
+                      <p>{meal.isEmpty ? "No items logged in this slot yet." : `${meal.items.length} food items`}</p>
+                    </div>
+                    <span className="workspace-pill">{Math.round(meal.totals.kcal)} cal</span>
+                  </div>
+
+                  <div className="training-pill-row">
+                    <span className="training-pill">{Math.round(meal.totals.protein)}P</span>
+                    <span className="training-pill">{Math.round(meal.totals.carbs)}C</span>
+                    <span className="training-pill">{Math.round(meal.totals.fat)}F</span>
+                  </div>
+
+                  {meal.items.length > 0 ? (
+                    <div className="settings-tab-stack">
+                      {meal.items.map((item) => (
+                        <div key={item.id} className="food-search-row">
+                          <div>
+                            <strong>{item.name}</strong>
+                            <p>
+                              {Math.round(item.amount)}
+                              {item.unit} · {Math.round(item.kcal)} cal · {Math.round(item.protein)}P ·{" "}
+                              {Math.round(item.carbs)}C · {Math.round(item.fat)}F
+                            </p>
+                          </div>
+                          <span className="workspace-pill">{item.source ?? "logged"}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="workspace-empty">
+              {prototypeDay?.hasLog
+                ? "This day exists in Supabase, but no food items have been logged yet."
+                : "No Supabase daily log exists for this date yet."}
+            </div>
+          )
         ) : meals.length === 0 ? (
-          <div className="workspace-empty">No meals have been logged yet today.</div>
+          <div className="workspace-empty">
+            {isViewingToday ? "No meals have been logged yet today." : "No meals have been logged for this day."}
+          </div>
         ) : (
           <div className="saved-meal-grid">
             {meals.map((meal) => (
@@ -603,6 +748,50 @@ export function FoodLogPage() {
           </div>
         )}
       </section>
+
+      {isPrototypeHistoryMode && prototypeDay ? (
+        <section className="workspace-card">
+          <div className="workspace-section-heading">
+            <div>
+              <span>Training context</span>
+              <h3>Activities linked to this day</h3>
+            </div>
+            <div className="workspace-pill">
+              {prototypeDay.activities.length} {prototypeDay.activities.length === 1 ? "activity" : "activities"}
+            </div>
+          </div>
+
+          {prototypeDay.activities.length === 0 ? (
+            <div className="workspace-empty">No activities are attached to this day in Supabase yet.</div>
+          ) : (
+            <div className="saved-meal-grid prototype-activity-grid">
+              {prototypeDay.activities.map((activity) => (
+                <article key={activity.id} className="saved-meal-card prototype-activity-card">
+                  <div className="food-search-row">
+                    <div>
+                      <strong>{activity.title}</strong>
+                      <p>{activity.sport}</p>
+                    </div>
+                    <span className="workspace-pill">{Math.round(activity.calories)} cal</span>
+                  </div>
+
+                  <div className="training-pill-row">
+                    {activity.distance ? (
+                      <span className="training-pill">
+                        {activity.distance}
+                        {activity.distanceUnit ?? "km"}
+                      </span>
+                    ) : null}
+                    {activity.movingTime ? <span className="training-pill">{activity.movingTime}</span> : null}
+                    {activity.avgHr ? <span className="training-pill">{activity.avgHr} bpm</span> : null}
+                    {activity.elevation ? <span className="training-pill">{activity.elevation} m</span> : null}
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }

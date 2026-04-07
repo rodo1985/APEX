@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -6,9 +6,19 @@ import { FoodLogPage } from "./FoodLogPage";
 
 const mockedUseSession = vi.fn();
 const mockedRecordAudioOnce = vi.fn();
+const mockedGetPrototypeFoodLogDay = vi.fn();
+const mockedIsPrototypeSupabaseConfigured = vi.fn();
 
 vi.mock("../lib/auth", () => ({
   useSession: () => mockedUseSession(),
+}));
+
+vi.mock("../lib/prototypeNutrition", () => ({
+  getPrototypeFoodLogDay: (...args: unknown[]) => mockedGetPrototypeFoodLogDay(...args),
+}));
+
+vi.mock("../lib/prototypeSupabaseRest", () => ({
+  isPrototypeSupabaseConfigured: () => mockedIsPrototypeSupabaseConfigured(),
 }));
 
 vi.mock("../lib/voice", () => ({
@@ -18,6 +28,7 @@ vi.mock("../lib/voice", () => ({
 describe("FoodLogPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedIsPrototypeSupabaseConfigured.mockReturnValue(false);
   });
 
   it("supports manual meal drafting with food search results", async () => {
@@ -48,7 +59,7 @@ describe("FoodLogPage", () => {
     };
     mockedUseSession.mockReturnValue({ api });
 
-    render(<FoodLogPage />);
+    const view = render(<FoodLogPage />);
 
     expect(await screen.findByText("No meals have been logged yet today.")).toBeInTheDocument();
 
@@ -104,7 +115,7 @@ describe("FoodLogPage", () => {
     mockedUseSession.mockReturnValue({ api });
     mockedRecordAudioOnce.mockResolvedValue(new Blob(["audio"], { type: "audio/webm" }));
 
-    render(<FoodLogPage />);
+    const view = render(<FoodLogPage />);
 
     await user.click(screen.getAllByRole("button", { name: /voice meal/i })[0]);
     await user.type(screen.getByLabelText(/transcript hint/i), "Oats with banana");
@@ -146,7 +157,7 @@ describe("FoodLogPage", () => {
     };
     mockedUseSession.mockReturnValue({ api });
 
-    render(<FoodLogPage />);
+    const view = render(<FoodLogPage />);
 
     await user.click(screen.getAllByRole("button", { name: /photo meal/i })[0]);
     fireEvent.change(screen.getByLabelText(/meal photo/i), {
@@ -161,5 +172,104 @@ describe("FoodLogPage", () => {
     });
     expect(await screen.findByDisplayValue("Rice bowl")).toBeInTheDocument();
     expect(screen.getByText("Chicken breast")).toBeInTheDocument();
+  });
+
+  it("switches past-day browsing into the read-only Supabase history mode", async () => {
+    const user = userEvent.setup();
+    const api = {
+      getNutritionLog: vi.fn().mockResolvedValue({ logs: [] }),
+      searchFoods: vi.fn(),
+      createMealLog: vi.fn(),
+      updateMealLog: vi.fn(),
+      deleteMealLog: vi.fn(),
+      parseVoiceMeal: vi.fn(),
+      parsePhotoMeal: vi.fn(),
+    };
+
+    mockedUseSession.mockReturnValue({ api });
+    mockedIsPrototypeSupabaseConfigured.mockReturnValue(true);
+    mockedGetPrototypeFoodLogDay.mockResolvedValue({
+      activities: [
+        {
+          id: "activity-1",
+          title: "Lunch ride",
+          sport: "cycling",
+          calories: 640,
+          distance: 42.5,
+          distanceUnit: "km",
+          elevation: 510,
+          movingTime: "1:26:14",
+          avgHr: 142,
+          extraStats: [],
+          achievements: [],
+          zones: [],
+        },
+      ],
+      dailyLogId: "daily-1",
+      date: "2026-04-05",
+      hasLog: true,
+      meals: [
+        {
+          dailyLogId: "daily-1",
+          icon: "🍽️",
+          id: "meal-1",
+          isEmpty: false,
+          items: [
+            {
+              amount: 180,
+              carbs: 62,
+              fat: 14,
+              id: "item-1",
+              kcal: 520,
+              mealId: "meal-1",
+              name: "Chicken rice bowl",
+              protein: 33,
+              sortOrder: 1,
+              source: "personal_db",
+              unit: "g",
+            },
+          ],
+          label: "Lunch",
+          name: "Lunch",
+          slotKey: "lunch",
+          sortOrder: 4,
+          totals: {
+            carbs: 62,
+            fat: 14,
+            kcal: 520,
+            protein: 33,
+          },
+        },
+      ],
+      summary: {
+        actual: { carbs: 62, fat: 14, kcal: 520, protein: 33 },
+        confirmed: true,
+        dayType: "moderate",
+        exerciseCalories: 640,
+        hasActivity: true,
+        hasFood: true,
+        macroProgress: { carbsPct: 35, fatPct: 18, proteinPct: 47 },
+        netCalories: -120,
+        remainingCalories: 1080,
+        targets: { carbs: 240, fat: 60, kcal: 1600, protein: 140 },
+      },
+      userId: "sergio",
+    });
+
+    const view = render(<FoodLogPage />);
+
+    const navigation = within(view.container).getByLabelText(/food log date navigation/i);
+    expect(navigation).toBeTruthy();
+
+    await user.click(within(navigation as HTMLElement).getByRole("button", { name: /previous day/i }));
+
+    await waitFor(() => {
+      expect(mockedGetPrototypeFoodLogDay).toHaveBeenCalledTimes(1);
+    });
+
+    expect(await screen.findByText("Read-only nutrition timeline")).toBeInTheDocument();
+    expect(screen.getByText("Chicken rice bowl")).toBeInTheDocument();
+    expect(screen.getByText("Activities linked to this day")).toBeInTheDocument();
+    expect(within(view.container).queryByRole("button", { name: /manual meal/i })).not.toBeInTheDocument();
   });
 });
