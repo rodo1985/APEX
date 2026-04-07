@@ -225,3 +225,8 @@ backend/htmlcov/
 
 # General
 *.tsbuildinfo
+
+# Keep the tracked frontend source lib folder versioned.
+!frontend/src/lib/
+!frontend/src/lib/*.ts
+!frontend/src/lib/*.tsx
