@@ -4,8 +4,8 @@
 
 This repo now contains the greenfield MVP scaffold that the docs were describing:
 
-- FastAPI backend in [backend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend)
-- React + Vite frontend in [frontend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend)
+- FastAPI backend in [backend](../../backend)
+- React + Vite frontend in [frontend](../../frontend)
 - OpenAPI export plus generated frontend schema types
 - Automated backend and frontend tests for the main MVP flows
 
@@ -55,8 +55,8 @@ UI notes:
 
 ## Contract Artifacts
 
-- OpenAPI source: [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json)
-- Generated frontend schema types: [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts)
+- OpenAPI source: [backend/openapi.json](../../backend/openapi.json)
+- Generated frontend schema types: [frontend/src/lib/generated/openapi.ts](../../frontend/src/lib/generated/openapi.ts)
 
 Recommended workflow after API changes:
 

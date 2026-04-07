@@ -9,13 +9,13 @@ This is intentionally a prototype path. The goal is to move quickly on UX and da
 ## Reference Inputs
 
 - Product shell and overall visual language:
-  [docs/design/apex-app-v9.jsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/design/apex-app-v9.jsx)
+  [docs/design/apex-app-v9.jsx](../design/apex-app-v9.jsx)
 - Supabase nutrition prototype:
-  [docs/design/apex-daily-log.jsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/design/apex-daily-log.jsx)
+  [docs/design/apex-daily-log.jsx](../design/apex-daily-log.jsx)
 - Current dashboard page:
-  [frontend/src/pages/TodayPage.tsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/pages/TodayPage.tsx)
+  [frontend/src/pages/TodayPage.tsx](../../frontend/src/pages/TodayPage.tsx)
 - Current food log page:
-  [frontend/src/pages/FoodLogPage.tsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/pages/FoodLogPage.tsx)
+  [frontend/src/pages/FoodLogPage.tsx](../../frontend/src/pages/FoodLogPage.tsx)
 
 ## Prototype Architecture
 
@@ -29,8 +29,8 @@ This is intentionally a prototype path. The goal is to move quickly on UX and da
 ### Agent 1: Dashboard UX
 
 Owns:
-- [frontend/src/pages/TodayPage.tsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/pages/TodayPage.tsx)
-- relevant shared styles in [frontend/src/styles.css](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/styles.css)
+- [frontend/src/pages/TodayPage.tsx](../../frontend/src/pages/TodayPage.tsx)
+- relevant shared styles in [frontend/src/styles.css](../../frontend/src/styles.css)
 
 Deliverables:
 - Reframe `Today` as the main dashboard in copy, information density, and layout.
@@ -47,8 +47,8 @@ Notes:
 ### Agent 2: Historical Food Log UX
 
 Owns:
-- [frontend/src/pages/FoodLogPage.tsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/pages/FoodLogPage.tsx)
-- relevant shared styles in [frontend/src/styles.css](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/src/styles.css)
+- [frontend/src/pages/FoodLogPage.tsx](../../frontend/src/pages/FoodLogPage.tsx)
+- relevant shared styles in [frontend/src/styles.css](../../frontend/src/styles.css)
 
 Deliverables:
 - Add a date navigator for today, yesterday, and earlier days.
@@ -85,9 +85,9 @@ Notes:
 ### Agent 4: Config, Docs, and Backend Bridge
 
 Owns:
-- [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/c054/APEX/frontend/.env.example)
-- [backend/.env.example](/Users/REDONSX1/.codex/worktrees/c054/APEX/backend/.env.example)
-- [README.md](/Users/REDONSX1/.codex/worktrees/c054/APEX/README.md)
+- [frontend/.env.example](../../frontend/.env.example)
+- [backend/.env.example](../../backend/.env.example)
+- [README.md](../../README.md)
 - optional backend config plumbing if a server-side bridge is introduced
 
 Deliverables:

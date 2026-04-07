@@ -4,7 +4,7 @@ APEX is a web MVP for endurance athletes who want nutrition, training, and coach
 
 The current build is optimized for local product iteration. It runs fully offline with deterministic mock Strava data by default, but it can also use live provider credentials when they are present in backend configuration.
 
-There is also an in-progress Supabase-backed nutrition prototype in [docs/design/apex-daily-log.jsx](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/design/apex-daily-log.jsx). That prototype is intended to enrich the dashboard and historical food log without forcing an all-at-once backend migration.
+There is also an in-progress Supabase-backed nutrition prototype in [docs/design/apex-daily-log.jsx](docs/design/apex-daily-log.jsx). That prototype is intended to enrich the dashboard and historical food log without forcing an all-at-once backend migration.
 
 ## Key Features / Scope
 
@@ -19,8 +19,8 @@ There is also an in-progress Supabase-backed nutrition prototype in [docs/design
 - Persisted coach conversations grounded in profile, nutrition, and training context.
 - Optional Supabase prototype path for a richer dashboard and direct historical food-log reads.
 - Interactive dashboard drilldowns including a metric-switched seven-day trend, expandable meal-slot details, and a viewport-sized APEX loading state with heartbeat motion while historical days are fetched.
-- Generated backend OpenAPI document at [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json).
-- Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
+- Generated backend OpenAPI document at [backend/openapi.json](backend/openapi.json).
+- Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](frontend/src/lib/generated/openapi.ts).
 
 ### Explicitly Deferred
 
@@ -109,7 +109,7 @@ npm run generate:api
 
 ### Backend environment
 
-Copy [backend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/.env.example) to `backend/.env`.
+Copy [backend/.env.example](backend/.env.example) to `backend/.env`.
 
 Important values:
 
@@ -138,7 +138,7 @@ Notes:
 
 ### Frontend environment
 
-Copy [frontend/.env.example](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/.env.example) to `frontend/.env`.
+Copy [frontend/.env.example](frontend/.env.example) to `frontend/.env`.
 
 - `VITE_API_URL`
   Points the React app at the versioned API base.
@@ -172,28 +172,28 @@ Prototype note:
 
 ## Project Structure
 
-- [backend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend)
+- [backend](backend)
   FastAPI app, SQLAlchemy models, Alembic migration, tests, and OpenAPI export.
-- [backend/app/api.py](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/app/api.py)
+- [backend/app/api.py](backend/app/api.py)
   Public API routes for auth, nutrition, training, coach, and settings.
-- [backend/app/services](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/app/services)
+- [backend/app/services](backend/app/services)
   Domain services for auth, nutrition, training, provider adapters, and coach logic.
-- [frontend](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend)
+- [frontend](frontend)
   Vite + React application, tests, styles, and generated API schema types.
-- [frontend/src/app/routes.tsx](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/app/routes.tsx)
+- [frontend/src/app/routes.tsx](frontend/src/app/routes.tsx)
   Top-level route protection and app navigation flow.
-- [frontend/src/pages](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/pages)
+- [frontend/src/pages](frontend/src/pages)
   Landing, onboarding, product pages, and Strava callback handling.
-- [docs](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs)
+- [docs](docs)
   Original product/design documentation plus implementation notes.
-- [docs/implementation/APEX_MVP_IMPLEMENTATION.md](/Users/REDONSX1/.codex/worktrees/9f84/APEX/docs/implementation/APEX_MVP_IMPLEMENTATION.md)
+- [docs/implementation/APEX_MVP_IMPLEMENTATION.md](docs/implementation/APEX_MVP_IMPLEMENTATION.md)
   Build summary, deferred scope, and local workflow notes for this MVP scaffold.
-- [docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md](/Users/REDONSX1/.codex/worktrees/c054/APEX/docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md)
+- [docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md](docs/implementation/APEX_SUPABASE_PROTOTYPE_PLAN.md)
   Parallel implementation plan for the Supabase-backed dashboard and food-log prototype.
 
 ## Development Notes
 
-- When the backend contract changes, regenerate both [backend/openapi.json](/Users/REDONSX1/.codex/worktrees/9f84/APEX/backend/openapi.json) and [frontend/src/lib/generated/openapi.ts](/Users/REDONSX1/.codex/worktrees/9f84/APEX/frontend/src/lib/generated/openapi.ts).
+- When the backend contract changes, regenerate both [backend/openapi.json](backend/openapi.json) and [frontend/src/lib/generated/openapi.ts](frontend/src/lib/generated/openapi.ts).
 - Keep the React UI aligned with the product design docs in `docs/design`.
 - Keep the README and `docs/implementation` notes updated whenever routes, setup, configuration, or workflow changes.
 - The backend currently uses SQLite for zero-friction local development, but the schema and service layout are intended to transfer cleanly to Postgres.
