@@ -155,6 +155,7 @@ Prototype note:
 - The intended split is FastAPI for auth, coach, uploads, and existing MVP flows, with Supabase used as a read model for the richer nutrition dashboard and historical daily log until both paths are unified.
 - The current prototype is read-only on the frontend: `/app/today` and `/app/log` read the selected day directly from Supabase when the frontend Supabase env vars are present.
 - The dashboard now derives consumed, exercise, and net calories from raw meal and activity rows in the frontend adapter, instead of trusting the optional `daily_totals` aggregate view. This avoids double-counting when the prototype SQL view joins food items and activities in the same grouped query.
+- The dashboard display layer now derives an `expected` calorie target as `base target + exercise`, and it rebalances the displayed protein, carb, and fat targets to stay aligned with that total without changing the underlying Supabase rows.
 - The manual, voice, and photo meal composer remains the FastAPI-backed MVP path when the Supabase prototype is not enabled.
 
 ### Testing the Supabase Prototype

@@ -147,6 +147,8 @@ describe("TodayPage", () => {
       expect(screen.getByText("Training load")).toBeInTheDocument();
     });
     expect(screen.getByText("TSS")).toBeInTheDocument();
+    expect(screen.getByText("2780")).toBeInTheDocument();
+    expect(screen.getByText("Expected")).toBeInTheDocument();
   });
 
   it("expands a meal slot to reveal the logged food detail", async () => {

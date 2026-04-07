@@ -365,7 +365,10 @@ export function TodayPage() {
   const recoveryScore = clamp(78 + (training?.metrics.tsb ?? 0), 28, 96);
   const hydrationLitres = Math.max(activeDashboard.totals.kcal / 1000, 1.5).toFixed(1);
   const dayTypeLabel = activeDashboard.dayType === "rest" ? "😴 Rest day" : `🔋 ${activeDashboard.dayType} day`;
-  const remainingLabel = activeDashboard.totals.remaining < 0 ? "Surplus" : "Remaining";
+  const effectiveTargets = deriveExpectedTargets(activeDashboard.targets, activeDashboard.totals.exercise);
+  const expectedCalories = effectiveTargets.kcal;
+  const expectedRemaining = Math.round(expectedCalories - activeDashboard.totals.kcal);
+  const remainingLabel = expectedRemaining < 0 ? "Surplus" : "Remaining";
   const primaryHero = resolveHeroContent(selectedActivity, completed, planned, activeDashboard.dayType);
   const selectedTrendPoint =
     activeWeek.find((point) => point.date === selectedTrendDate) ?? activeWeek[activeWeek.length - 1] ?? null;
@@ -422,7 +425,7 @@ export function TodayPage() {
                 label="Calories"
                 unit="kcal"
                 value={activeDashboard.totals.kcal}
-                target={activeDashboard.targets.kcal}
+                target={effectiveTargets.kcal}
                 color="var(--workspace-teal)"
                 tone="kcal"
               />
@@ -430,7 +433,7 @@ export function TodayPage() {
                 label="Protein"
                 unit="g"
                 value={activeDashboard.totals.protein}
-                target={activeDashboard.targets.protein}
+                target={effectiveTargets.protein}
                 color="var(--workspace-blue)"
                 tone="protein"
               />
@@ -438,7 +441,7 @@ export function TodayPage() {
                 label="Carbs"
                 unit="g"
                 value={activeDashboard.totals.carbs}
-                target={activeDashboard.targets.carbs}
+                target={effectiveTargets.carbs}
                 color="var(--workspace-lime)"
                 tone="carbs"
               />
@@ -446,7 +449,7 @@ export function TodayPage() {
                 label="Fat"
                 unit="g"
                 value={activeDashboard.totals.fat}
-                target={activeDashboard.targets.fat}
+                target={effectiveTargets.fat}
                 color="var(--workspace-orange)"
                 tone="fat"
               />
@@ -457,17 +460,17 @@ export function TodayPage() {
                 <strong>{activeDashboard.targets.kcal}</strong>
                 <span>Target</span>
               </div>
-              <div className={activeDashboard.totals.remaining >= 0 ? "accent" : ""}>
-                <strong>{Math.abs(Math.round(activeDashboard.totals.remaining))}</strong>
-                <span>{remainingLabel}</span>
-              </div>
-              <div>
-                <strong>{Math.round(activeDashboard.totals.net)}</strong>
-                <span>Net</span>
-              </div>
               <div>
                 <strong>{Math.round(activeDashboard.totals.exercise)}</strong>
                 <span>Exercise</span>
+              </div>
+              <div className="accent">
+                <strong>{expectedCalories}</strong>
+                <span>Expected</span>
+              </div>
+              <div className={expectedRemaining >= 0 ? "accent" : ""}>
+                <strong>{Math.abs(expectedRemaining)}</strong>
+                <span>{remainingLabel}</span>
               </div>
             </div>
 
@@ -859,6 +862,59 @@ function getTrendMetricUnit(metric: TrendMetric) {
   }
 
   return "kcal";
+}
+
+/**
+ * Derives the displayed calorie and macro targets for the selected day.
+ *
+ * Parameters:
+ * - baseTargets: The stored baseline targets for calories and macros.
+ * - exerciseCalories: The exercise calories completed on the selected day.
+ *
+ * Returns:
+ * - A new target object whose calories are `base + exercise`, with macros
+ *   rebalanced to preserve the original macro calorie ratios.
+ *
+ * Raised errors:
+ * - None.
+ *
+ * Example:
+ * ```ts
+ * const expected = deriveExpectedTargets({ kcal: 2100, protein: 140, carbs: 240, fat: 60 }, 500);
+ * ```
+ */
+function deriveExpectedTargets(
+  baseTargets: {
+    carbs: number;
+    fat: number;
+    kcal: number;
+    protein: number;
+  },
+  exerciseCalories: number,
+) {
+  const expectedCalories = Math.max(Math.round(baseTargets.kcal + exerciseCalories), Math.round(baseTargets.kcal));
+  const macroCalories =
+    Math.max(baseTargets.protein, 0) * 4 +
+    Math.max(baseTargets.carbs, 0) * 4 +
+    Math.max(baseTargets.fat, 0) * 9;
+
+  if (macroCalories <= 0) {
+    return {
+      ...baseTargets,
+      kcal: expectedCalories,
+    };
+  }
+
+  const proteinRatio = (Math.max(baseTargets.protein, 0) * 4) / macroCalories;
+  const carbsRatio = (Math.max(baseTargets.carbs, 0) * 4) / macroCalories;
+  const fatRatio = (Math.max(baseTargets.fat, 0) * 9) / macroCalories;
+
+  return {
+    kcal: expectedCalories,
+    protein: Math.round((expectedCalories * proteinRatio) / 4),
+    carbs: Math.round((expectedCalories * carbsRatio) / 4),
+    fat: Math.round((expectedCalories * fatRatio) / 9),
+  };
 }
 
 function resolveHeroContent(
