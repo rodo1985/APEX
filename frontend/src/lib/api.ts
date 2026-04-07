@@ -33,7 +33,7 @@ interface RequestOptions extends RequestInit {
 }
 
 export function resolveApiBaseUrl(
-  configuredApiUrl = import.meta.env.VITE_API_URL,
+  configuredApiUrl?: string,
   location = typeof window !== "undefined" ? window.location : null,
 ) {
   if (configuredApiUrl) {
@@ -47,7 +47,7 @@ export function resolveApiBaseUrl(
   return "http://localhost:8000/v1";
 }
 
-const API_BASE_URL = resolveApiBaseUrl();
+const API_BASE_URL = resolveApiBaseUrl(import.meta.env.VITE_API_URL);
 
 async function parseResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
