@@ -59,6 +59,41 @@ function PreviewFrame({ Component, frameKey }) {
   );
 }
 
+function PreviewApexIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 72 72" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+      <path
+        d="M36 55 C35 55 13 42 13 28 C13 20.5 19 15 26 15 C30.5 15 34 17.5 36 21 C38 17.5 41.5 15 46 15 C53 15 59 20.5 59 28 C59 42 37 55 36 55 Z"
+        fill="#2DD4BF"
+        fillOpacity="0.15"
+        stroke="#2DD4BF"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <polyline
+        points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
+        fill="none"
+        stroke="#2DD4BF"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function PreviewApexLockup() {
+  return (
+    <div className="design-brand-lockup">
+      <PreviewApexIcon size={28} />
+      <div className="design-brand-wordmark" aria-label="APEX">
+        <div className="design-brand-wordmark-main">APE</div>
+        <div className="design-brand-wordmark-accent">X</div>
+      </div>
+    </div>
+  );
+}
+
 export function DesignPreviewApp() {
   const [selectedFile, setSelectedFile] = useState(getInitialSelection);
 
@@ -91,6 +126,7 @@ export function DesignPreviewApp() {
       <main className="design-shell">
         <aside className="design-sidebar">
           <div className="design-sidebar-header">
+            <PreviewApexLockup />
             <p>APEX Design</p>
             <h1>Preview workspace</h1>
             <span>{previews.length} JSX file{previews.length === 1 ? "" : "s"}</span>
@@ -202,6 +238,42 @@ const shellCss = `
     margin-top: 10px;
     color: #98a0b3;
     font-size: 14px;
+  }
+
+  .design-brand-lockup {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 14px;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+  }
+
+  .design-brand-wordmark {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: #f5f7fb;
+    line-height: 1;
+    white-space: nowrap;
+    min-width: max-content;
+  }
+
+  .design-brand-wordmark-main,
+  .design-brand-wordmark-accent {
+    display: block;
+    flex: 0 0 auto;
+  }
+
+  .design-brand-wordmark-accent {
+    color: #2dd4bf;
+    margin-left: -1px;
   }
 
   .design-sidebar-list {

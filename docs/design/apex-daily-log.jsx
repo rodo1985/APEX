@@ -33,6 +33,52 @@ const EMPTY_MEALS = [
   { name: "Dinner", icon: "🌙", items: [] },
 ];
 
+const ICON_COLORS = {
+  teal: "#2DD4BF",
+  dark: "#0d1411",
+  white: "#F5F7FB",
+};
+
+function ApexIcon({ size = 18, mode = "naked" }) {
+  const stroke = mode === "light" ? ICON_COLORS.dark : ICON_COLORS.teal;
+  const fill = mode === "light" ? ICON_COLORS.dark : ICON_COLORS.teal;
+  const showBackground = mode !== "naked";
+
+  return (
+    <svg width={size} height={size} viewBox="0 0 72 72" fill="none" aria-hidden="true" style={{ flexShrink: 0 }}>
+      {showBackground ? <rect width="72" height="72" rx="18" fill={mode === "light" ? ICON_COLORS.white : ICON_COLORS.dark} /> : null}
+      <path
+        d="M36 55 C35 55 13 42 13 28 C13 20.5 19 15 26 15 C30.5 15 34 17.5 36 21 C38 17.5 41.5 15 46 15 C53 15 59 20.5 59 28 C59 42 37 55 36 55 Z"
+        fill={fill}
+        fillOpacity={showBackground ? 0.1 : 0.15}
+        stroke={stroke}
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <polyline
+        points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function ApexLockup({ iconSize = 24, wordmarkSize = 16, iconMode = "dark", gap = 10 }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap, whiteSpace: "nowrap" }}>
+      <ApexIcon size={iconSize} mode={iconMode} />
+      <span style={{ display: "inline-flex", alignItems: "baseline", fontWeight: 800, fontSize: wordmarkSize, letterSpacing: "-0.04em", color: T.text, lineHeight: 1 }}>
+        <span>APE</span>
+        <span style={{ color: T.teal }}>X</span>
+      </span>
+    </div>
+  );
+}
+
 function parseDay(dateStr) {
   return new Date(`${dateStr}T00:00:00`);
 }
@@ -307,7 +353,12 @@ function sumMeals(meals) {
   return { kcal, protein, carbs, fat };
 }
 function sumActivityCal(acts) { return acts.reduce((s, a) => s + a.calories, 0); }
-function fmtDate(d) { return d.toISOString().split("T")[0]; }
+function fmtDate(d) {
+  const year = d.getFullYear();
+  const month = `${d.getMonth() + 1}`.padStart(2, "0");
+  const day = `${d.getDate()}`.padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 function labelDate(dateStr) {
   const today = fmtDate(new Date());
   const yesterday = fmtDate(new Date(Date.now() - 86400000));
@@ -346,11 +397,11 @@ const FoodRow = ({ item, idx }) => (
       <div style={{ fontSize: 12, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.name}</div>
       <div style={{ fontSize: 9, color: T.textMuted }}>{item.amount}{item.unit}{srcIcon(item.source)}</div>
     </div>
-    <div style={{ display: "flex", gap: 7, alignItems: "center", fontVariantNumeric: "tabular-nums", fontSize: 11 }}>
-      <span style={{ color: T.text, fontWeight: 600, minWidth: 28, textAlign: "right" }}>{item.kcal}</span>
-      <span style={{ color: T.blue, minWidth: 22, textAlign: "right" }}>{item.protein.toFixed(1)}</span>
-      <span style={{ color: T.teal, minWidth: 22, textAlign: "right" }}>{item.carbs.toFixed(1)}</span>
-      <span style={{ color: T.orange, minWidth: 22, textAlign: "right" }}>{item.fat.toFixed(1)}</span>
+    <div style={{ display: "flex", gap: 8, alignItems: "center", justifyContent: "flex-end", flexWrap: "wrap", fontVariantNumeric: "tabular-nums", fontSize: 11 }}>
+      <span style={{ color: T.text, fontWeight: 600, minWidth: 48, textAlign: "right" }}>{item.kcal} cal</span>
+      <span style={{ color: T.blue, minWidth: 44, textAlign: "right" }}>{item.protein.toFixed(1)} prot</span>
+      <span style={{ color: T.teal, minWidth: 54, textAlign: "right" }}>{item.carbs.toFixed(1)} carbs</span>
+      <span style={{ color: T.orange, minWidth: 40, textAlign: "right" }}>{item.fat.toFixed(1)} fat</span>
     </div>
   </div>
 );
@@ -378,11 +429,11 @@ const MealCard = ({ meal }) => {
       {open && !empty && (
         <div style={{ borderTop: `1px solid ${T.border}` }}>
           {meal.items.map((item, i) => <FoodRow key={item.id || i} item={item} idx={i} />)}
-          <div style={{ display: "flex", justifyContent: "flex-end", gap: 7, padding: "5px 12px", borderTop: `1px solid ${T.border}`, background: "rgba(255,255,255,0.02)", fontSize: 11, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
-            <span style={{ color: T.text, minWidth: 28, textAlign: "right" }}>{sub.kcal}</span>
-            <span style={{ color: T.blue, minWidth: 22, textAlign: "right" }}>{sub.p.toFixed(1)}</span>
-            <span style={{ color: T.teal, minWidth: 22, textAlign: "right" }}>{sub.c.toFixed(1)}</span>
-            <span style={{ color: T.orange, minWidth: 22, textAlign: "right" }}>{sub.f.toFixed(1)}</span>
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "5px 12px", borderTop: `1px solid ${T.border}`, background: "rgba(255,255,255,0.02)", fontSize: 11, fontWeight: 600, fontVariantNumeric: "tabular-nums", flexWrap: "wrap" }}>
+            <span style={{ color: T.text, minWidth: 48, textAlign: "right" }}>{sub.kcal} cal</span>
+            <span style={{ color: T.blue, minWidth: 44, textAlign: "right" }}>{sub.p.toFixed(1)} prot</span>
+            <span style={{ color: T.teal, minWidth: 54, textAlign: "right" }}>{sub.c.toFixed(1)} carbs</span>
+            <span style={{ color: T.orange, minWidth: 40, textAlign: "right" }}>{sub.f.toFixed(1)} fat</span>
           </div>
         </div>
       )}
@@ -442,17 +493,14 @@ export default function ApexDailyLog() {
   const [dateStr, setDateStr] = useState(fmtDate(new Date()));
   const [dayData, setDayData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [confirmed, setConfirmed] = useState(false);
 
   const todayStr = fmtDate(new Date());
   const canNext = parseDay(dateStr).getTime() < parseDay(todayStr).getTime();
 
   const loadDay = useCallback(async (ds) => {
     setLoading(true);
-    setConfirmed(false);
     const data = await fetchDayData(ds);
     setDayData(data);
-    if (data?.confirmed) setConfirmed(true);
     setLoading(false);
   }, []);
 
@@ -484,8 +532,8 @@ export default function ApexDailyLog() {
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: T.font, color: T.text, padding: "12px 12px 32px" }}>
       {/* Wordmark */}
-      <div style={{ textAlign: "center", marginBottom: 8 }}>
-        <span style={{ fontWeight: 800, fontSize: 13, letterSpacing: "0.14em", color: T.textMuted }}>APE<span style={{ color: T.teal }}>X</span></span>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 8 }}>
+        <ApexLockup iconSize={28} wordmarkSize={20} iconMode="dark" gap={12} />
       </div>
 
       {/* Date Navigator */}
@@ -569,18 +617,6 @@ export default function ApexDailyLog() {
             <span><span style={{ color: T.textMuted, marginRight: 2 }}>~</span>Est</span>
           </div>
 
-          {/* Confirm / Status */}
-          {hasData && (
-            <button onClick={() => setConfirmed(true)} disabled={confirmed || !hasFood} style={{
-              width: "100%", padding: "12px 0", borderRadius: 12, border: "none", fontSize: 13, fontWeight: 700,
-              fontFamily: T.font, cursor: confirmed || !hasFood ? "default" : "pointer",
-              background: confirmed ? T.green : !hasFood ? T.border : T.teal,
-              color: confirmed ? "#fff" : !hasFood ? T.textMuted : "#0f1012",
-              transition: "all 0.3s ease", display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-            }}>
-              {confirmed ? (<><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>Confirmed</>) : !hasFood ? "No food logged" : "Confirm & Save Log"}
-            </button>
-          )}
           {!hasData && (
             <div style={{ textAlign: "center", padding: "20px 0" }}>
               <div style={{ fontSize: 32, marginBottom: 8 }}>📝</div>
