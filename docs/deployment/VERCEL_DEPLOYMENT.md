@@ -51,10 +51,10 @@ This repo does not use Docker for Vercel deployment. The frontend ships as a nat
 
 ```bash
 cd frontend
-vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-web
+vercel link --yes --scope <team-slug-or-id> --project apex-web
 
 cd ../backend
-vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-api
+vercel link --yes --scope <team-slug-or-id> --project apex-api
 ```
 
 ### 2. Configure production environment variables in Vercel
@@ -74,6 +74,7 @@ APEX_DATABASE_URL="postgresql+psycopg://..." uv run alembic upgrade head
 ```
 
 The backend also accepts `postgres://...` and `postgresql://...` inputs and normalizes them to the SQLAlchemy `psycopg` dialect automatically.
+Do not leave `APEX_DATABASE_URL` at the local default `sqlite:///./apex.db` on Vercel. Serverless functions run on a read-only filesystem, so SQLite writes and startup seed operations will fail.
 
 ### 4. Seed reference foods
 
@@ -88,14 +89,14 @@ This step is explicit so production does not depend on cold-start bootstrap logi
 
 ```bash
 cd backend
-vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
+vercel deploy --prod -y --scope <team-slug-or-id>
 ```
 
 ### 6. Deploy the frontend
 
 ```bash
 cd frontend
-vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
+vercel deploy --prod -y --scope <team-slug-or-id>
 ```
 
 ## Validation Checklist

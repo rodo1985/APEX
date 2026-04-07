@@ -127,18 +127,18 @@ Recommended deployment flow:
 ```bash
 # Link each folder to its own Vercel project
 cd frontend
-vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-web
+vercel link --yes --scope <team-slug-or-id> --project apex-web
 
 cd ../backend
-vercel link --yes --scope team_c5dt1QIUDQ0t67UEw74b9oJG --project apex-api
+vercel link --yes --scope <team-slug-or-id> --project apex-api
 
 # Apply the production schema and seed reference foods before first traffic
 APEX_DATABASE_URL="postgresql+psycopg://..." uv run alembic upgrade head
 APEX_DATABASE_URL="postgresql+psycopg://..." uv run python -m app.bootstrap --seed-foods
 
 # Then deploy each project separately from its own folder
-cd ../frontend && vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
-cd ../backend && vercel deploy --prod -y --scope team_c5dt1QIUDQ0t67UEw74b9oJG
+cd ../frontend && vercel deploy --prod -y --scope <team-slug-or-id>
+cd ../backend && vercel deploy --prod -y --scope <team-slug-or-id>
 ```
 
 Production environment variables:
@@ -149,6 +149,7 @@ Production environment variables:
 Important Vercel notes:
 
 - Production should use Postgres, not the local SQLite default.
+- Do not leave `APEX_DATABASE_URL` at `sqlite:///./apex.db` for Vercel. Serverless deployments use a read-only filesystem, so SQLite bootstrap and seed writes will fail at runtime.
 - Runtime schema creation is only enabled for local SQLite development; production schema should be applied with Alembic.
 - The backend normalizes `postgres://` and `postgresql://` URLs to `postgresql+psycopg://...`, so Supabase-style URLs work cleanly with SQLAlchemy.
 - Reference foods should be loaded explicitly with `uv run python -m app.bootstrap --seed-foods` after migrations.
