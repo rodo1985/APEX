@@ -18,7 +18,7 @@ const T = {
 };
 
 // ─── MASTER ICON (centered, perfectly balanced) ───────────────────────
-// Heart centered at (36,34), waveform inside, consistent optical weight
+// Heart centered at (36,34), with the center heartbeat spike touching the top notch of the heart.
 function ApexIcon({ size = 72, variant = "dark" }) {
   const variants = {
     dark:    { bg: "#0d1411",  stroke: T.teal,  fill: T.teal,  opacity: 1   },
@@ -52,9 +52,9 @@ function ApexIcon({ size = 72, variant = "dark" }) {
         opacity={v.opacity}
       />
 
-      {/* ── WAVEFORM — centered within heart body ── */}
+      {/* ── WAVEFORM — centered within heart body, with the center spike touching the top notch ── */}
       <polyline
-        points="18,34 23,34 27,25 31,43 35,19 39,43 43,30 47,34 54,34"
+        points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
         fill="none"
         stroke={v.stroke}
         strokeWidth="2.2"
@@ -541,7 +541,7 @@ export default function App() {
                     {/* Heart */}
                     <path d="M36 55 C35 55 13 42 13 28 C13 20.5 19 15 26 15 C30.5 15 34 17.5 36 21 C38 17.5 41.5 15 46 15 C53 15 59 20.5 59 28 C59 42 37 55 36 55 Z"
                       fill={T.teal} fillOpacity="0.1" stroke={T.teal} strokeWidth="2" strokeLinejoin="round"/>
-                    <polyline points="18,34 23,34 27,25 31,43 35,19 39,43 43,30 47,34 54,34"
+                    <polyline points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
                       fill="none" stroke={T.teal} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                   <div style={{ fontSize:9, color:T.text3, textAlign:"center" }}>{f.label}</div>
@@ -831,7 +831,7 @@ export default function App() {
                   <rect width="72" height="72" rx="18" fill="#0d1411"/>
                   <path d="M36 55 C35 55 13 42 13 28 C13 20.5 19 15 26 15 C30.5 15 34 17.5 36 21 C38 17.5 41.5 15 46 15 C53 15 59 20.5 59 28 C59 42 37 55 36 55 Z"
                     fill="#FF4D4D" fillOpacity="0.1" stroke="#FF4D4D" strokeWidth="2"/>
-                  <polyline points="18,34 23,34 27,25 31,43 35,19 39,43 43,30 47,34 54,34"
+                  <polyline points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
                     fill="none" stroke="#FF4D4D" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>

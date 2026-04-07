@@ -212,6 +212,10 @@ frontend/dist/
 frontend/coverage/
 frontend/apex.db
 
+# Design preview workspace
+docs/design/node_modules/
+docs/design/dist/
+
 # Backend
 backend/.venv/
 backend/.pytest_cache/

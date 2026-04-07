@@ -25,7 +25,7 @@ const IMG = {
   food: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&q=80",
   runner: "https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=800&q=80",
   cycling: "https://images.unsplash.com/photo-1517649763962-0c623066013b?w=800&q=80",
-  watch: "https://images.unsplash.com/photo-1510017803434-a899b57f3680?w=800&q=80",
+  watch: "https://images.unsplash.com/photo-1508685096489-7aacd43bd3b1?w=800&q=80",
   meal2: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=800&q=80",
   community: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80",
   nature: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1400&q=80",
@@ -81,7 +81,7 @@ function ApexIcon({ size = 72, variant = "dark" }) {
       <path d="M36 55 C35 55 13 42 13 28 C13 20.5 19 15 26 15 C30.5 15 34 17.5 36 21 C38 17.5 41.5 15 46 15 C53 15 59 20.5 59 28 C59 42 37 55 36 55 Z"
         fill={v.fill} fillOpacity={isNaked ? 0.15 : variant === "ghost" ? 0.08 : 0.1}
         stroke={v.stroke} strokeWidth="2" strokeLinejoin="round" />
-      <polyline points="18,34 23,34 27,25 31,43 35,19 39,43 43,30 47,34 54,34"
+      <polyline points="18,36 24,36 29,28 33,46 36,22 39,46 44,32 48,36 54,36"
         fill="none" stroke={v.stroke} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
