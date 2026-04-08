@@ -13,6 +13,7 @@ import type { GoalPayload, UserProfile } from "./types";
 
 const ACCESS_TOKEN_KEY = "apex.accessToken";
 const REFRESH_TOKEN_KEY = "apex.refreshToken";
+const SESSION_BOOTSTRAP_TIMEOUT_MS = 5000;
 
 interface SessionContextValue {
   api: ReturnType<typeof createApiClient>;
@@ -55,6 +56,27 @@ export function needsOnboarding(user: UserProfile | null): boolean {
   }
 
   return !user.weight_kg || !user.height_cm || !user.active_goal || user.sports.length === 0;
+}
+
+/**
+ * Resolves a promise or rejects when the bootstrap window takes too long.
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string) {
+  return new Promise<T>((resolve, reject) => {
+    const timeoutId = window.setTimeout(() => {
+      reject(new Error(message));
+    }, timeoutMs);
+
+    promise
+      .then((value) => {
+        window.clearTimeout(timeoutId);
+        resolve(value);
+      })
+      .catch((error: unknown) => {
+        window.clearTimeout(timeoutId);
+        reject(error);
+      });
+  });
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
@@ -110,12 +132,19 @@ export function SessionProvider({ children }: PropsWithChildren) {
       }
 
       try {
-        const profile = await api.getProfile();
+        const profile = await withTimeout(
+          api.getProfile(),
+          SESSION_BOOTSTRAP_TIMEOUT_MS,
+          "Timed out while restoring the local APEX session.",
+        );
         if (!cancelled) {
           setUser(profile);
         }
       } catch {
         if (!cancelled) {
+          // A stale or hanging bootstrap request should never trap the app on
+          // the splash screen. Clear the session and return the user to the
+          // normal unauthenticated flow instead.
           handleLogoutState();
         }
       } finally {

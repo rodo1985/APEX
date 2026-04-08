@@ -474,16 +474,18 @@ def list_meal_logs(
     return NutritionLogResponse(logs=[serialize_meal(row) for row in rows])
 
 
-def get_today_summary(db: Session, user: User, today: date | None = None) -> NutritionTodayResponse:
-    """Return today's meals and the resolved dynamic macro targets.
+def get_day_summary(
+    db: Session, user: User, target_date: date | None = None
+) -> NutritionTodayResponse:
+    """Return a single day's meals and resolved dynamic macro targets.
 
     Parameters:
         db: The active SQLAlchemy session.
         user: The authenticated user whose summary is being requested.
-        today: Optional override used by tests.
+        target_date: Optional calendar day override used by tests and historical UI reads.
 
     Returns:
-        NutritionTodayResponse: Today's meals and macro summary.
+        NutritionTodayResponse: The requested day's meals and macro summary.
 
     Raises:
         SQLAlchemyError: Propagated if the query fails.
@@ -493,7 +495,7 @@ def get_today_summary(db: Session, user: User, today: date | None = None) -> Nut
         True
     """
 
-    target_day = today or datetime.now(tz=UTC).date()
+    target_day = target_date or datetime.now(tz=UTC).date()
     logs = list_meal_logs(db, user, target_day, target_day).logs
     target = resolve_daily_target(db, user, target_day)
     totals = {
@@ -515,6 +517,28 @@ def get_today_summary(db: Session, user: User, today: date | None = None) -> Nut
         ),
         meals=logs,
     )
+
+
+def get_today_summary(db: Session, user: User, today: date | None = None) -> NutritionTodayResponse:
+    """Return today's meals and the resolved dynamic macro targets.
+
+    Parameters:
+        db: The active SQLAlchemy session.
+        user: The authenticated user whose summary is being requested.
+        today: Optional override used by tests.
+
+    Returns:
+        NutritionTodayResponse: Today's meals and macro summary.
+
+    Raises:
+        SQLAlchemyError: Propagated if the query fails.
+
+    Example:
+        >>> get_today_summary is not None
+        True
+    """
+
+    return get_day_summary(db, user, target_date=today)
 
 
 def get_weekly_nutrition(

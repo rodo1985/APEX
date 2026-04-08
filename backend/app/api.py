@@ -264,10 +264,11 @@ async def upload_avatar(
 def get_nutrition_today(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    target_date: date | None = Query(default=None, alias="date"),
 ) -> NutritionTodayResponse:
-    """Return today's nutrition summary and meals."""
+    """Return a nutrition summary and meals for the requested calendar day."""
 
-    return nutrition_service.get_today_summary(db, user)
+    return nutrition_service.get_day_summary(db, user, target_date=target_date)
 
 
 @router.get("/nutrition/log", response_model=NutritionLogResponse)
@@ -381,10 +382,11 @@ def get_nutrition_weekly(
 def get_training_today(
     db: Annotated[Session, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    target_date: date | None = Query(default=None, alias="date"),
 ) -> TrainingTodayResponse:
-    """Return today's training summary and generated plan."""
+    """Return a training summary and generated plan for the requested day."""
 
-    return training_service.get_today_training_summary(db, user)
+    return training_service.get_day_training_summary(db, user, target_date=target_date)
 
 
 @router.get("/training/activities", response_model=ActivityListResponse)
@@ -442,12 +444,13 @@ def sync_strava(
 @router.get("/training/load", response_model=TrainingLoadResponse)
 def get_training_load(
     days: int = 90,
+    end_date: date | None = None,
     db: Annotated[Session, Depends(get_db)] = None,
     user: Annotated[User, Depends(get_current_user)] = None,
 ) -> TrainingLoadResponse:
     """Return the CTL, ATL, and TSB load curve for the requested window."""
 
-    return training_service.get_training_load(db, user, days=days)
+    return training_service.get_training_load(db, user, days=days, end_date=end_date)
 
 
 @router.get("/training/weekly", response_model=TrainingWeeklyResponse)

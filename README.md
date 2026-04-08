@@ -19,6 +19,7 @@ There is also an in-progress Supabase-backed nutrition prototype in [docs/design
 - Persisted coach conversations grounded in profile, nutrition, and training context.
 - Optional Supabase prototype path for a richer dashboard and direct historical food-log reads.
 - Interactive dashboard drilldowns including a metric-switched seven-day trend, expandable meal-slot details, and a viewport-sized APEX loading state with heartbeat motion while historical days are fetched.
+- Historical date navigation on `/app/today` and `/app/log` now works through the FastAPI API as well, so local and Vercel builds can review prior days even when the legacy Supabase prototype tables are unavailable.
 - Generated backend OpenAPI document at [backend/openapi.json](backend/openapi.json).
 - Generated frontend schema types at [frontend/src/lib/generated/openapi.ts](frontend/src/lib/generated/openapi.ts).
 
@@ -207,6 +208,7 @@ Prototype note:
 - The intended split is FastAPI for auth, coach, uploads, and existing MVP flows, with Supabase used as a read model for the richer nutrition dashboard and historical daily log until both paths are unified.
 - The current prototype is read-only on the frontend: `/app/today` and `/app/log` read the selected day directly from Supabase when the frontend Supabase env vars are present.
 - If those frontend Supabase env vars point at a production database that only contains the current FastAPI/Alembic schema, APEX automatically disables the legacy prototype reads for that session instead of failing the live app on missing tables like `daily_log`.
+- When the prototype is disabled or unavailable, the frontend now requests the selected dashboard date from FastAPI directly instead of falling back to a today-only summary, so historical navigation still works in local development and Vercel deployments.
 - The dashboard now derives consumed, exercise, and net calories from raw meal and activity rows in the frontend adapter, instead of trusting the optional `daily_totals` aggregate view. This avoids double-counting when the prototype SQL view joins food items and activities in the same grouped query.
 - The dashboard display layer now derives an `expected` calorie target as `base target + exercise`, and it rebalances the displayed protein, carb, and fat targets to stay aligned with that total without changing the underlying Supabase rows.
 - The macro section on `/app/today` is calculated in the frontend display layer as protein/carbs/fat percentage composition based on the exercise-adjusted expected macro targets for the selected day.

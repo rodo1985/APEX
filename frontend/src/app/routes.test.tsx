@@ -23,6 +23,9 @@ vi.mock("../pages/TrainingPage", () => ({ TrainingPage: () => <div>Training page
 vi.mock("../pages/CoachPage", () => ({ CoachPage: () => <div>Coach page</div> }));
 vi.mock("../pages/SettingsPage", () => ({ SettingsPage: () => <div>Settings page</div> }));
 vi.mock("../pages/StravaCallbackPage", () => ({ StravaCallbackPage: () => <div>Strava callback page</div> }));
+vi.mock("../components/AppSplashScreen", () => ({
+  AppSplashScreen: ({ label }: { label: string }) => <div>{label}</div>,
+}));
 
 const onboardedUser: UserProfile = {
   user_id: "user-1",
@@ -100,5 +103,17 @@ describe("AppRoutes", () => {
     renderRoutes("/app/today");
 
     expect(await screen.findByText("Onboarding page")).toBeInTheDocument();
+  });
+
+  it("shows the branded splash while the session is still bootstrapping", () => {
+    mockedUseSession.mockReturnValue({
+      loading: true,
+      user: null,
+      logout: vi.fn(),
+    });
+
+    renderRoutes("/app/today");
+
+    expect(screen.getByText("Loading APEX...")).toBeInTheDocument();
   });
 });

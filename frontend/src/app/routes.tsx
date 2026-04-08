@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 
+import { AppSplashScreen } from "../components/AppSplashScreen";
 import { AppShell } from "../components/AppShell";
 import { needsOnboarding, useSession } from "../lib/auth";
 import { CoachPage } from "../pages/CoachPage";
@@ -18,7 +19,7 @@ export function AppRoutes() {
   const location = useLocation();
 
   if (loading) {
-    return <div className="screen-state">Loading APEX...</div>;
+    return <AppSplashScreen label="Loading APEX..." fullscreen />;
   }
 
   return (

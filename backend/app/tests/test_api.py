@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 from fastapi.testclient import TestClient
 
@@ -155,6 +155,13 @@ def test_manual_meal_logging_and_nutrition_rollups(client: TestClient) -> None:
     assert len(weekly_response.json()["days"]) == 7
     assert log_response.json()["logs"][0]["log_id"] == meal["log_id"]
 
+    yesterday = (datetime.now(tz=UTC).date() - timedelta(days=1)).isoformat()
+    historical_response = client.get(f"/v1/nutrition/today?date={yesterday}", headers=headers)
+
+    assert historical_response.status_code == 200
+    assert historical_response.json()["date"] == yesterday
+    assert historical_response.json()["summary"]["target_day_type"] != ""
+
 
 def test_strava_sync_and_training_endpoints(client: TestClient) -> None:
     """Verify mock Strava connection, onboarding import, and training summaries.
@@ -202,6 +209,18 @@ def test_strava_sync_and_training_endpoints(client: TestClient) -> None:
         "rest",
         "run_weights",
     }
+
+    historical_date = sync_response.json()["activities"][0]["start_time"].split("T")[0]
+    historical_summary = client.get(f"/v1/training/today?date={historical_date}", headers=headers)
+    historical_load = client.get(
+        f"/v1/training/load?days=7&end_date={historical_date}",
+        headers=headers,
+    )
+
+    assert historical_summary.status_code == 200
+    assert historical_load.status_code == 200
+    assert historical_summary.json()["date"] == historical_date
+    assert len(historical_load.json()["series"]) == 7
 
 
 def test_coach_message_flow_persists_conversation_history(client: TestClient) -> None:

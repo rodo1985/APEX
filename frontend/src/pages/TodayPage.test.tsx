@@ -235,6 +235,97 @@ describe("TodayPage", () => {
     expect(screen.getByText("F 26%")).toBeInTheDocument();
   });
 
+  it("loads the selected historical day from the API when the prototype is unavailable", async () => {
+    const user = userEvent.setup();
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterdayDate = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const getNutritionToday = vi.fn().mockImplementation(async (requestedDate?: string) => ({
+      date: requestedDate ?? today,
+      summary: {
+        calories_consumed: requestedDate === yesterdayDate ? 1480 : 1760,
+        calories_target: requestedDate === yesterdayDate ? 2150 : 2250,
+        protein_g: requestedDate === yesterdayDate ? 124 : 136,
+        carbs_g: requestedDate === yesterdayDate ? 188 : 232,
+        fat_g: requestedDate === yesterdayDate ? 46 : 52,
+        target_day_type: requestedDate === yesterdayDate ? "easy_z2" : "hard",
+        note: "Loaded from the API",
+      },
+      meals: [
+        {
+          log_id: `meal-${requestedDate ?? today}`,
+          user_id: "sergio",
+          meal_type: "lunch",
+          meal_name: requestedDate === yesterdayDate ? "Historical lunch" : "Today lunch",
+          logged_at: `${requestedDate ?? today}T12:00:00Z`,
+          total_calories: requestedDate === yesterdayDate ? 640 : 720,
+          total_protein_g: requestedDate === yesterdayDate ? 40 : 44,
+          total_carbs_g: requestedDate === yesterdayDate ? 72 : 84,
+          total_fat_g: requestedDate === yesterdayDate ? 18 : 20,
+          ingredients: [],
+          source: "manual",
+          created_at: `${requestedDate ?? today}T12:00:00Z`,
+        },
+      ],
+    }));
+    const getNutritionWeekly = vi.fn().mockImplementation(async (endDate?: string) => ({
+      days: Array.from({ length: 7 }, (_, index) => {
+        const day = new Date(`${endDate ?? today}T12:00:00Z`);
+        day.setUTCDate(day.getUTCDate() - (6 - index));
+        return {
+          date: day.toISOString().slice(0, 10),
+          calories: 1500 + index * 50,
+          protein_g: 110 + index,
+          carbs_g: 180 + index * 4,
+          fat_g: 45 + index,
+        };
+      }),
+    }));
+    const getTrainingToday = vi.fn().mockImplementation(async (requestedDate?: string) => ({
+      date: requestedDate ?? today,
+      metrics: { ctl: 58, atl: 61, tsb: -3, daily_tss: requestedDate === yesterdayDate ? 32 : 48 },
+      status: "optimal",
+      planned_activities: [],
+      completed_activities: [],
+    }));
+    const getTrainingLoad = vi.fn().mockImplementation(async (_days = 120, endDate?: string) => ({
+      series: Array.from({ length: 7 }, (_, index) => {
+        const day = new Date(`${endDate ?? today}T12:00:00Z`);
+        day.setUTCDate(day.getUTCDate() - (6 - index));
+        return {
+          date: day.toISOString().slice(0, 10),
+          ctl: 50 + index,
+          atl: 52 + index,
+          tsb: -2,
+          daily_tss: 20 + index * 4,
+        };
+      }),
+    }));
+
+    mockedIsPrototypeSupabaseConfigured.mockReturnValue(false);
+    mockedUseSession.mockReturnValue({
+      api: {
+        getNutritionToday,
+        getNutritionWeekly,
+        getTrainingToday,
+        getTrainingLoad,
+      },
+    });
+
+    render(<TodayPage />);
+
+    expect(await screen.findByRole("heading", { name: "Seven-day trend" })).toBeInTheDocument();
+    expect(getNutritionToday).toHaveBeenLastCalledWith(today);
+
+    await user.click(screen.getByRole("button", { name: "Previous day" }));
+
+    await waitFor(() => {
+      expect(getNutritionToday).toHaveBeenLastCalledWith(yesterdayDate);
+      expect(getNutritionWeekly).toHaveBeenLastCalledWith(yesterdayDate);
+      expect(getTrainingToday).toHaveBeenLastCalledWith(yesterdayDate);
+      expect(getTrainingLoad).toHaveBeenLastCalledWith(120, yesterdayDate);
+    });
+  });
+
   it("expands a meal slot to reveal the logged food detail", async () => {
     const user = userEvent.setup();
     mockedUseSession.mockReturnValue({
@@ -383,6 +474,7 @@ describe("TodayPage", () => {
     mockedUseSession.mockReturnValue({
       api: {
         getNutritionToday: vi.fn().mockResolvedValue({
+          date: "2026-04-07",
           summary: {
             calories_consumed: 1650,
             calories_target: 2100,

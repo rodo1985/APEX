@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 
-import { ApexIcon, ApexWordmark, Icon } from "../components/Brand";
+import { AppSplashScreen } from "../components/AppSplashScreen";
+import { Icon } from "../components/Brand";
 import { useSession } from "../lib/auth";
 import {
   formatDateLabel,
@@ -105,35 +105,42 @@ export function TodayPage() {
   const [selectedTrendDate, setSelectedTrendDate] = useState<string | null>(null);
   const [expandedMealId, setExpandedMealId] = useState<string | null>(null);
   const [apiError, setApiError] = useState<string | null>(null);
+  const [apiLoading, setApiLoading] = useState(true);
   const [prototypeError, setPrototypeError] = useState<string | null>(null);
   const [prototypeLoading, setPrototypeLoading] = useState(false);
   const [prototypeAvailable, setPrototypeAvailable] = useState(prototypeConfigured);
 
   const todayDate = toIsoDate(new Date());
   const prototypeEnabled = prototypeConfigured && prototypeAvailable;
+  const isDateLoading = apiLoading || prototypeLoading;
   const error = apiError ?? prototypeError;
   const canGoNext = selectedDate < todayDate;
 
   useEffect(() => {
     async function loadApi() {
+      setApiLoading(true);
+      setApiError(null);
+
       try {
-        const [todayNutrition, weeklyNutritionResponse, trainingToday, trainingLoadResponse] = await Promise.all([
-          api.getNutritionToday(),
-          api.getNutritionWeekly(),
-          api.getTrainingToday(),
-          api.getTrainingLoad(120),
+        const [selectedNutrition, weeklyNutritionResponse, selectedTraining, trainingLoadResponse] = await Promise.all([
+          api.getNutritionToday(selectedDate),
+          api.getNutritionWeekly(selectedDate),
+          api.getTrainingToday(selectedDate),
+          api.getTrainingLoad(120, selectedDate),
         ]);
-        setNutrition(todayNutrition);
+        setNutrition(selectedNutrition);
         setWeeklyNutrition(weeklyNutritionResponse);
-        setTraining(trainingToday);
+        setTraining(selectedTraining);
         setTrainingLoadSeries(trainingLoadResponse.series);
       } catch (requestError) {
         setApiError(requestError instanceof Error ? requestError.message : "Unable to load the dashboard.");
+      } finally {
+        setApiLoading(false);
       }
     }
 
     void loadApi();
-  }, [api]);
+  }, [api, selectedDate]);
 
   useEffect(() => {
     if (!prototypeEnabled) {
@@ -170,15 +177,15 @@ export function TodayPage() {
   }, [prototypeEnabled, selectedDate]);
 
   const fallbackDashboard = useMemo(() => {
-    if (!nutrition?.summary || !weeklyNutrition || !training) {
+    if (!nutrition?.summary || !nutrition.date || !weeklyNutrition || !training) {
       return null;
     }
 
     const dailyCalories = Math.round(nutrition.summary.calories_consumed);
     const exercise = training.completed_activities.reduce((sum, activity) => sum + activity.calories, 0);
     return {
-      date: todayDate,
-      label: "Today",
+      date: nutrition.date,
+      label: formatRelativeDayLabel(nutrition.date),
       dayType: nutrition.summary.target_day_type,
       confirmed: false,
       targets: {
@@ -226,7 +233,7 @@ export function TodayPage() {
         weeklyLossKg: 0.5,
       },
     };
-  }, [nutrition, todayDate, training, weeklyNutrition]);
+  }, [nutrition, training, weeklyNutrition]);
 
   const prototypeDashboard = useMemo<DashboardViewModel | null>(() => {
     if (!prototypeDay) {
@@ -276,7 +283,7 @@ export function TodayPage() {
     };
   }, [prototypeDay]);
 
-  const activeDashboard = prototypeDashboard ?? (selectedDate === todayDate ? fallbackDashboard : null);
+  const activeDashboard = prototypeDashboard ?? fallbackDashboard;
 
   const activeWeek = useMemo<TrendPoint[]>(() => {
     const loadByDate = new Map(trainingLoadSeries.map((point) => [point.date, point.daily_tss]));
@@ -303,7 +310,7 @@ export function TodayPage() {
       dayType: "rest",
       kcal: day.calories,
       load: loadByDate.get(day.date) ?? 0,
-      targetKcal: nutrition?.summary.calories_target ?? 0,
+      targetKcal: day.date === nutrition?.date ? nutrition.summary.calories_target : 0,
       exercise: 0,
     }));
   }, [nutrition?.summary?.calories_target, prototypeWeek, trainingLoadSeries, weeklyNutrition]);
@@ -328,31 +335,10 @@ export function TodayPage() {
     return <div className="error-banner">{error}</div>;
   }
 
-  if ((selectedDate === todayDate && !activeDashboard) || (prototypeLoading && !activeDashboard)) {
+  if (!activeDashboard || (isDateLoading && !activeDashboard)) {
     return (
       <div className="dashboard-loader-shell">
         <DashboardLoadingState label="Loading dashboard data" fullscreen />
-      </div>
-    );
-  }
-
-  if (!activeDashboard) {
-    return (
-      <div className="workspace-section">
-        <div className="workspace-page-header compact">
-          <div>
-            <span>{formatRelativeDayLabel(selectedDate)}</span>
-            <h2>Dashboard</h2>
-            <p>Historical dashboard data is available when the Supabase prototype is connected.</p>
-          </div>
-          <DateNavigator
-            date={selectedDate}
-            canGoNext={canGoNext}
-            onPrevious={() => setSelectedDate((current) => shiftIsoDate(current, -1))}
-            onNext={() => setSelectedDate((current) => shiftIsoDate(current, 1))}
-          />
-        </div>
-        <div className="workspace-empty">No dashboard data is available for this day yet.</div>
       </div>
     );
   }
@@ -377,7 +363,7 @@ export function TodayPage() {
 
   return (
     <div className="workspace-section">
-      {prototypeLoading ? <DashboardLoadingState label={`Loading ${formatRelativeDayLabel(selectedDate)}`} /> : null}
+      {isDateLoading ? <DashboardLoadingState label={`Loading ${formatRelativeDayLabel(selectedDate)}`} /> : null}
 
       <div className="workspace-page-header compact">
         <div>
@@ -712,37 +698,7 @@ function DashboardLoadingState({
   label: string;
   fullscreen?: boolean;
 }) {
-  const loader = (
-    <div
-      aria-live="polite"
-      className={`dashboard-loader${fullscreen ? " fullscreen" : " overlay"} viewport`}
-    >
-      <div className="dashboard-loader-glow" />
-      <div className="dashboard-loader-content">
-        <div className="dashboard-loader-brand">
-          <div className="dashboard-loader-heartbeat">
-            <ApexIcon size={fullscreen ? 92 : 74} />
-          </div>
-          <ApexWordmark size={fullscreen ? 34 : 28} />
-        </div>
-        <div className="dashboard-loader-copy">
-          <strong>{label}</strong>
-          <span>Syncing nutrition, activity, and target context.</span>
-        </div>
-        <div className="dashboard-loader-dots" aria-hidden="true">
-          <span />
-          <span />
-          <span />
-        </div>
-      </div>
-    </div>
-  );
-
-  if (typeof document === "undefined") {
-    return loader;
-  }
-
-  return createPortal(loader, document.body);
+  return <AppSplashScreen label={label} fullscreen={fullscreen} />;
 }
 
 function MetricRing({

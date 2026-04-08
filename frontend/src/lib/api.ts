@@ -161,8 +161,14 @@ export function createApiClient(options: ApiClientOptions) {
         `/auth/strava/callback?code=${encodeURIComponent(code)}`,
       );
     },
-    getNutritionToday() {
-      return request<NutritionTodayResponse>("/nutrition/today");
+    getNutritionToday(targetDate?: string) {
+      const params = new URLSearchParams();
+      if (targetDate) {
+        params.set("date", targetDate);
+      }
+
+      const suffix = params.size > 0 ? `?${params.toString()}` : "";
+      return request<NutritionTodayResponse>(`/nutrition/today${suffix}`);
     },
     getNutritionLog(fromDate: string, toDate: string) {
       return request<{ logs: MealLog[] }>(
@@ -216,11 +222,23 @@ export function createApiClient(options: ApiClientOptions) {
         `/nutrition/foods/search?q=${encodeURIComponent(query)}`,
       );
     },
-    getNutritionWeekly() {
-      return request<NutritionWeeklyResponse>("/nutrition/weekly");
+    getNutritionWeekly(endDate?: string) {
+      const params = new URLSearchParams();
+      if (endDate) {
+        params.set("end_date", endDate);
+      }
+
+      const suffix = params.size > 0 ? `?${params.toString()}` : "";
+      return request<NutritionWeeklyResponse>(`/nutrition/weekly${suffix}`);
     },
-    getTrainingToday() {
-      return request<TrainingTodayResponse>("/training/today");
+    getTrainingToday(targetDate?: string) {
+      const params = new URLSearchParams();
+      if (targetDate) {
+        params.set("date", targetDate);
+      }
+
+      const suffix = params.size > 0 ? `?${params.toString()}` : "";
+      return request<TrainingTodayResponse>(`/training/today${suffix}`);
     },
     getTrainingActivities(fromDate: string, toDate: string, sport?: string) {
       const params = new URLSearchParams({ from: fromDate, to: toDate });
@@ -239,8 +257,13 @@ export function createApiClient(options: ApiClientOptions) {
         body: JSON.stringify({ days_back: daysBack }),
       });
     },
-    getTrainingLoad(days = 90) {
-      return request<{ series: TrainingLoadPoint[] }>(`/training/load?days=${days}`);
+    getTrainingLoad(days = 90, endDate?: string) {
+      const params = new URLSearchParams({ days: String(days) });
+      if (endDate) {
+        params.set("end_date", endDate);
+      }
+
+      return request<{ series: TrainingLoadPoint[] }>(`/training/load?${params.toString()}`);
     },
     getTrainingWeekly(weeks = 8) {
       return request<{ weeks: TrainingWeeklySummary[] }>(`/training/weekly?weeks=${weeks}`);

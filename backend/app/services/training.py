@@ -556,6 +556,50 @@ def _training_status(tsb: float) -> str:
     return "optimal"
 
 
+def get_day_training_summary(
+    db: Session, user: User, target_date: date | None = None
+) -> TrainingTodayResponse:
+    """Return a day's generated plan, completed sessions, and load metrics.
+
+    Parameters:
+        db: The active SQLAlchemy session.
+        user: The authenticated user whose summary is requested.
+        target_date: Optional date override used by tests and historical UI reads.
+
+    Returns:
+        TrainingTodayResponse: The requested day's training snapshot.
+
+    Raises:
+        SQLAlchemyError: Propagated if activity queries fail.
+
+    Example:
+        >>> get_today_training_summary is not None
+        True
+    """
+
+    target_day = target_date or datetime.now(tz=UTC).date()
+    series = compute_load_series(db, user, days=90, end_date=target_day)
+    latest = (
+        series[-1]
+        if series
+        else TrainingLoadPoint(date=target_day, ctl=0, atl=0, tsb=0, daily_tss=0)
+    )
+    completed = get_completed_activities_for_day(db, user, target_day)
+    brief = generate_daily_brief(db, user, target_day)
+    return TrainingTodayResponse(
+        date=target_day,
+        metrics=TrainingMetrics(
+            ctl=latest.ctl,
+            atl=latest.atl,
+            tsb=latest.tsb,
+            daily_tss=round(sum(activity.tss for activity in completed), 1),
+        ),
+        status=_training_status(latest.tsb),
+        planned_activities=[brief["planned_activity"]],
+        completed_activities=[serialize_activity(activity) for activity in completed],
+    )
+
+
 def get_today_training_summary(
     db: Session, user: User, today: date | None = None
 ) -> TrainingTodayResponse:
@@ -577,27 +621,7 @@ def get_today_training_summary(
         True
     """
 
-    target_day = today or datetime.now(tz=UTC).date()
-    series = compute_load_series(db, user, days=90, end_date=target_day)
-    latest = (
-        series[-1]
-        if series
-        else TrainingLoadPoint(date=target_day, ctl=0, atl=0, tsb=0, daily_tss=0)
-    )
-    completed = get_completed_activities_for_day(db, user, target_day)
-    brief = generate_daily_brief(db, user, target_day)
-    return TrainingTodayResponse(
-        date=target_day,
-        metrics=TrainingMetrics(
-            ctl=latest.ctl,
-            atl=latest.atl,
-            tsb=latest.tsb,
-            daily_tss=round(sum(activity.tss for activity in completed), 1),
-        ),
-        status=_training_status(latest.tsb),
-        planned_activities=[brief["planned_activity"]],
-        completed_activities=[serialize_activity(activity) for activity in completed],
-    )
+    return get_day_training_summary(db, user, target_date=today)
 
 
 def list_activities(
@@ -808,13 +832,16 @@ def import_strava_history(db: Session, user: User, days_back: int = 90) -> None:
     upsert_activities(db, user, payloads)
 
 
-def get_training_load(db: Session, user: User, days: int = 90) -> TrainingLoadResponse:
+def get_training_load(
+    db: Session, user: User, days: int = 90, end_date: date | None = None
+) -> TrainingLoadResponse:
     """Return the rolling load series for the requested time window.
 
     Parameters:
         db: The active SQLAlchemy session.
         user: The authenticated user whose training load is requested.
         days: Number of days to include in the series.
+        end_date: Optional final day for the returned series.
 
     Returns:
         TrainingLoadResponse: CTL, ATL, and TSB points for the requested window.
@@ -827,7 +854,7 @@ def get_training_load(db: Session, user: User, days: int = 90) -> TrainingLoadRe
         True
     """
 
-    return TrainingLoadResponse(series=compute_load_series(db, user, days=days))
+    return TrainingLoadResponse(series=compute_load_series(db, user, days=days, end_date=end_date))
 
 
 def get_weekly_training(db: Session, user: User, weeks: int = 8) -> TrainingWeeklyResponse:
