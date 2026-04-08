@@ -18,6 +18,9 @@ dependencies = [
   "uvicorn[standard]>=0.35.0",
 ]
 
+[project.scripts]
+app = "index:app"
+
 [dependency-groups]
 dev = [
   "pytest>=8.4.2",
