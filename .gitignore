@@ -14,8 +14,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-/lib/
-/lib64/
+lib/
+lib64/
 parts/
 sdist/
 var/
@@ -211,11 +211,6 @@ frontend/node_modules/
 frontend/dist/
 frontend/coverage/
 frontend/apex.db
-.vercel/
-
-# Design preview workspace
-docs/design/node_modules/
-docs/design/dist/
 
 # Backend
 backend/.venv/
@@ -227,7 +222,12 @@ backend/htmlcov/
 # General
 *.tsbuildinfo
 
-# Keep the tracked frontend source lib folder versioned.
+# Keep the React shared modules tracked and included in Vercel uploads even
+# though the Python template above ignores generic `lib/` directories.
 !frontend/src/lib/
-!frontend/src/lib/*.ts
-!frontend/src/lib/*.tsx
+!frontend/src/lib/**
+
+# Keep the React shared modules tracked and included in Vercel uploads even
+# though the Python template above ignores generic `lib/` directories.
+!frontend/src/lib/
+!frontend/src/lib/**
