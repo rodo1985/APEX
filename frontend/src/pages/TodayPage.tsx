@@ -307,13 +307,13 @@ export function TodayPage() {
     return weeklyNutrition.days.map((day) => ({
       date: day.date,
       label: formatDateLabel(day.date),
-      dayType: "rest",
+      dayType: day.day_type ?? "rest",
       kcal: day.calories,
       load: loadByDate.get(day.date) ?? 0,
-      targetKcal: day.date === nutrition?.date ? nutrition.summary.calories_target : 0,
-      exercise: 0,
+      targetKcal: day.target_calories ?? (day.date === nutrition?.date ? nutrition.summary.calories_target : 0),
+      exercise: day.exercise_calories ?? 0,
     }));
-  }, [nutrition?.summary?.calories_target, prototypeWeek, trainingLoadSeries, weeklyNutrition]);
+  }, [nutrition?.date, nutrition?.summary?.calories_target, prototypeWeek, trainingLoadSeries, weeklyNutrition]);
 
   useEffect(() => {
     if (activeWeek.length === 0) {

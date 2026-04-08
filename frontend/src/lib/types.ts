@@ -97,6 +97,9 @@ export interface NutritionWeeklyDay {
   protein_g: number;
   carbs_g: number;
   fat_g: number;
+  target_calories?: number;
+  exercise_calories?: number;
+  day_type?: string;
 }
 
 export interface NutritionWeeklyResponse {

@@ -111,7 +111,8 @@ def test_manual_meal_logging_and_nutrition_rollups(client: TestClient) -> None:
     """
 
     headers = register_demo_user(client)
-    logged_at = datetime.now(tz=UTC).replace(microsecond=0).isoformat()
+    base_time = datetime.now(tz=UTC).replace(microsecond=0)
+    logged_at = base_time.isoformat()
 
     search_response = client.get("/v1/nutrition/foods/search?q=banana", headers=headers)
     assert search_response.status_code == 200
@@ -154,6 +155,8 @@ def test_manual_meal_logging_and_nutrition_rollups(client: TestClient) -> None:
     assert today_response.json()["summary"]["target_day_type"] != ""
     assert len(weekly_response.json()["days"]) == 7
     assert log_response.json()["logs"][0]["log_id"] == meal["log_id"]
+    assert weekly_response.json()["days"][-1]["target_calories"] > 0
+    assert "exercise_calories" in weekly_response.json()["days"][-1]
 
     yesterday = (datetime.now(tz=UTC).date() - timedelta(days=1)).isoformat()
     historical_response = client.get(f"/v1/nutrition/today?date={yesterday}", headers=headers)
@@ -161,6 +164,32 @@ def test_manual_meal_logging_and_nutrition_rollups(client: TestClient) -> None:
     assert historical_response.status_code == 200
     assert historical_response.json()["date"] == yesterday
     assert historical_response.json()["summary"]["target_day_type"] != ""
+
+    earlier_meal_response = client.post(
+        "/v1/nutrition/log",
+        headers=headers,
+        json={
+            "meal_type": "lunch",
+            "meal_name": "Early lunch",
+            "logged_at": (base_time + timedelta(hours=2)).isoformat(),
+            "ingredients": [
+                {
+                    "food_id": banana["food_id"],
+                    "name": banana["name"],
+                    "quantity_g": 120,
+                    "calories": banana["calories"] * 1.2,
+                    "protein_g": banana["protein_g"] * 1.2,
+                    "carbs_g": banana["carbs_g"] * 1.2,
+                    "fat_g": banana["fat_g"] * 1.2,
+                }
+            ],
+        },
+    )
+    assert earlier_meal_response.status_code == 201
+
+    ordered_log_response = client.get(f"/v1/nutrition/log?from={today}&to={today}", headers=headers)
+    ordered_logs = ordered_log_response.json()["logs"]
+    assert [log["meal_name"] for log in ordered_logs] == ["Banana oats bowl", "Early lunch"]
 
 
 def test_strava_sync_and_training_endpoints(client: TestClient) -> None:

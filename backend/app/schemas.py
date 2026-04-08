@@ -268,6 +268,9 @@ class NutritionDayAggregate(BaseModel):
     protein_g: float
     carbs_g: float
     fat_g: float
+    target_calories: int = 0
+    exercise_calories: float = 0.0
+    day_type: str = "rest"
 
 
 class NutritionWeeklyResponse(BaseModel):

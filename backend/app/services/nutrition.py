@@ -469,7 +469,10 @@ def list_meal_logs(
             MealLog.logged_at >= start_dt,
             MealLog.logged_at < end_dt,
         )
-        .order_by(MealLog.logged_at.desc())
+        # Preserve the original meal timeline order so the daily log reads
+        # from the first logged meal to the last one (FIFO), which matches
+        # how athletes review their day chronologically.
+        .order_by(MealLog.logged_at.asc())
     ).all()
     return NutritionLogResponse(logs=[serialize_meal(row) for row in rows])
 
@@ -565,8 +568,17 @@ def get_weekly_nutrition(
     final_day = end_date or datetime.now(tz=UTC).date()
     first_day = final_day - timedelta(days=6)
     logs = list_meal_logs(db, user, first_day, final_day).logs
+    # Import lazily to avoid a circular dependency with training services.
+    from app.services.training import get_completed_activities_for_day
+
     grouped: dict[date, dict[str, float]] = defaultdict(
-        lambda: {"calories": 0.0, "protein_g": 0.0, "carbs_g": 0.0, "fat_g": 0.0}
+        lambda: {
+            "calories": 0.0,
+            "protein_g": 0.0,
+            "carbs_g": 0.0,
+            "fat_g": 0.0,
+            "exercise_calories": 0.0,
+        }
     )
     for log in logs:
         grouped[log.logged_at.date()]["calories"] += log.total_calories
@@ -578,6 +590,11 @@ def get_weekly_nutrition(
     for offset in range(7):
         current = first_day + timedelta(days=offset)
         totals = grouped[current]
+        target = resolve_daily_target(db, user, current)
+        exercise_calories = round(
+            sum(activity.calories for activity in get_completed_activities_for_day(db, user, current)),
+            1,
+        )
         days.append(
             NutritionDayAggregate(
                 date=current,
@@ -585,6 +602,9 @@ def get_weekly_nutrition(
                 protein_g=round(totals["protein_g"], 1),
                 carbs_g=round(totals["carbs_g"], 1),
                 fat_g=round(totals["fat_g"], 1),
+                target_calories=target.calories,
+                exercise_calories=exercise_calories,
+                day_type=target.day_type,
             )
         )
     return NutritionWeeklyResponse(days=days)

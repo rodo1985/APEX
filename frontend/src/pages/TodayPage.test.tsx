@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -509,7 +509,15 @@ describe("TodayPage", () => {
           ],
         }),
         getNutritionWeekly: vi.fn().mockResolvedValue({
-          days: [{ date: "2026-04-07", calories: 1650 }],
+          days: [
+            {
+              date: "2026-04-07",
+              calories: 1650,
+              target_calories: 2100,
+              exercise_calories: 480,
+              day_type: "moderate",
+            },
+          ],
         }),
         getTrainingToday: vi.fn().mockResolvedValue({
           date: "2026-04-07",
@@ -537,5 +545,9 @@ describe("TodayPage", () => {
 
     expect(await screen.findByRole("heading", { name: "Seven-day trend" })).toBeInTheDocument();
     expect(screen.queryByText(/could not find the table/i)).not.toBeInTheDocument();
+    const trendDetail = screen.getByText("Target kcal").closest(".dashboard-trend-detail-grid");
+    expect(trendDetail).not.toBeNull();
+    expect(within(trendDetail as HTMLElement).getByText("2100")).toBeInTheDocument();
+    expect(within(trendDetail as HTMLElement).getByText("480")).toBeInTheDocument();
   });
 });
